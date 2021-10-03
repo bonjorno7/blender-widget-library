@@ -1,2 +1,5 @@
-# Auto detect text files and perform LF normalization
+# Auto detect text files and perform LF normalization.
 * text=auto eol=lf
+
+# Use git LFS for binary files.
+*.png filter=lfs diff=lfs merge=lfs -text
