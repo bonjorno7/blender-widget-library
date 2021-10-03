@@ -11,28 +11,30 @@ from gpu_extras.batch import batch_for_shader
 if TYPE_CHECKING:
     from .widgets.base import Widget
 
-_shader: GPUShader = None
+
+class Shaders:
+    '''Stored shaders.'''
+    standard: GPUShader = None
+    image: GPUShader = None
 
 
-def compile_shader(recompile: bool = False):
+def compile_shaders(recompile: bool = False) -> None:
     '''Compile the UI shader.'''
-    global _shader
+    folder = Path(__file__).parent.joinpath('shaders')
 
-    if recompile or _shader is None:
-        folder = Path(__file__).parent.joinpath('shaders')
-        vertex_source = folder.joinpath('vertex.glsl').read_text()
-        fragment_source = folder.joinpath('fragment.glsl').read_text()
+    if recompile or Shaders.standard is None:
+        vertex_source = folder.joinpath('standard_vs.glsl').read_text()
+        fragment_source = folder.joinpath('standard_fs.glsl').read_text()
+        Shaders.standard = GPUShader(vertex_source, fragment_source)
 
-        _shader = GPUShader(vertex_source, fragment_source)
+    if recompile or Shaders.image is None:
+        vertex_source = folder.joinpath('image_vs.glsl').read_text()
+        fragment_source = folder.joinpath('image_fs.glsl').read_text()
+        Shaders.image = GPUShader(vertex_source, fragment_source)
 
 
-def render_widget(context: Context, widget: Widget):
+def render_widget(context: Context, widget: Widget) -> None:
     '''Render a widget on the screen.'''
-    global _shader
-
-    if _shader is None:
-        raise Exception('Shader must be compiled first')
-
     x = widget.layout.padding.x
     y = widget.layout.padding.y
     width = widget.layout.padding.width
@@ -64,15 +66,56 @@ def render_widget(context: Context, widget: Widget):
         (2, 3, 0),
     )
 
-    _shader.bind()
-    _shader.uniform_float('u_position', [x, y])
-    _shader.uniform_float('u_size', [width, height])
-    _shader.uniform_float('u_color', color)
-    _shader.uniform_float('u_border_color', border_color)
-    _shader.uniform_float('u_border_radius', border_radius)
-    _shader.uniform_float('u_border_thickness', border_thickness)
+    if widget.style.image is None:
+        if Shaders.standard is None:
+            raise Exception('Shader must be compiled first')
 
-    batch: GPUBatch = batch_for_shader(_shader, 'TRIS', {'position': vertices}, indices=indices)
-    bgl.glEnable(bgl.GL_BLEND)
-    batch.draw(_shader)
-    bgl.glDisable(bgl.GL_BLEND)
+        Shaders.standard.bind()
+        Shaders.standard.uniform_float('u_position', [x, y])
+        Shaders.standard.uniform_float('u_size', [width, height])
+        Shaders.standard.uniform_float('u_color', color)
+        Shaders.standard.uniform_float('u_border_color', border_color)
+        Shaders.standard.uniform_float('u_border_radius', border_radius)
+        Shaders.standard.uniform_float('u_border_thickness', border_thickness)
+
+        bgl.glEnable(bgl.GL_BLEND)
+        batch: GPUBatch = batch_for_shader(Shaders.standard, 'TRIS', {'position': vertices}, indices=indices)
+        batch.draw(Shaders.standard)
+        bgl.glDisable(bgl.GL_BLEND)
+
+    else:
+        # TODO: Adjust UVs according to border thickness + 2.
+        uvs = (
+            (0, 0),
+            (1, 0),
+            (1, 1),
+            (0, 1),
+        )
+
+        if Shaders.image is None:
+            raise Exception('Shader must be compiled first')
+
+        Shaders.image.bind()
+        Shaders.image.uniform_float('u_position', [x, y])
+        Shaders.image.uniform_float('u_size', [width, height])
+        Shaders.image.uniform_float('u_color', color)
+        Shaders.image.uniform_int('u_image', 0)
+        Shaders.image.uniform_float('u_border_color', border_color)
+        Shaders.image.uniform_float('u_border_radius', border_radius)
+        Shaders.image.uniform_float('u_border_thickness', border_thickness)
+
+        image = widget.style.image
+        if image.gl_load():
+            raise Exception('Failed to load image')
+
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
+
+        batch: GPUBatch = batch_for_shader(Shaders.image, 'TRIS', {'position': vertices, 'uv': uvs}, indices=indices)
+        batch.draw(Shaders.image)
+
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)
+        bgl.glDisable(bgl.GL_BLEND)
+
+        image.gl_free()

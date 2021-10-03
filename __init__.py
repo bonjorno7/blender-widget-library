@@ -8,11 +8,14 @@ bl_info = {
     'location': 'View3D',
 }
 
+from pathlib import Path
+
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
+from .bwl.content import Image
 from .bwl.input import ModalEvent, ModalState
-from .bwl.render import compile_shader
+from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Direction, Justify, Size, Spacing
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets.base import Widget
@@ -26,7 +29,7 @@ class TestOperator(Operator):
 
     def invoke(self, context: Context, event: Event) -> set:
         try:
-            compile_shader()
+            compile_shaders()
 
             self.state = ModalState(context, event)
             self.event_esc = ModalEvent('ESC')
@@ -53,10 +56,10 @@ class TestOperator(Operator):
 
             widget_a = Widget(parent=container_a)
             widget_a.style.margin = Spacing(5)
-            widget_a.style.color = Color(0.6, 0.6, 0.6, 0.6)
-            widget_a.style.width = 100
-            widget_a.style.height = 150
-            widget_a.style.border_radius = 400
+            widget_a.style.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
+            # Adjusted size use native resolution with our shader.
+            widget_a.style.width = 252
+            widget_a.style.height = 252
 
             widget_b = Widget(parent=container_a)
             widget_b.style.margin = Spacing(5)

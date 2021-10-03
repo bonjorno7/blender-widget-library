@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import Iterator, Union
 
+from .content import Image
+
 
 class Display(Enum):
     '''How to display the widget.'''
@@ -62,8 +64,7 @@ class Spacing:
 class Color:
     '''Color in float values including alpha.'''
 
-    def __init__(self, red: float = 0, green: float = 0, blue: float = 0, alpha: float = 1):
-        '''Default color is opaque black.'''
+    def __init__(self, red: float, green: float, blue: float, alpha: float = 1):
         self.red = red
         self.green = green
         self.blue = blue
@@ -94,8 +95,9 @@ class Style:
         self.margin: Spacing = Spacing()
         self.padding: Spacing = Spacing()
 
-        self.color: Color = Color()
-        self.border_color: Color = Color()
+        self.color: Color = Color(1, 1, 1)
+        self.image: Union[Image, None] = None
 
+        self.border_color: Color = Color(0, 0, 0)
         self.border_radius: float = 0
         self.border_thickness: float = 0
