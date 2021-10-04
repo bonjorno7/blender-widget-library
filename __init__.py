@@ -57,8 +57,8 @@ class TestOperator(Operator):
             widget_a = Widget(parent=container_a)
             widget_a.style.margin = Sides(5)
             widget_a.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
-            widget_a.style.width = 256
-            widget_a.style.height = 256
+            widget_a.style.width = Size.IMAGE
+            widget_a.style.height = Size.IMAGE
 
             widget_b = Widget(parent=container_a)
             widget_b.style.margin = Sides(5)

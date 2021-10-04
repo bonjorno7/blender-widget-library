@@ -59,6 +59,16 @@ def compute_width(widget: Widget, width: float = None) -> float:
         widget.layout.padding.width = widget.layout.border.width - (widget.style.border_thickness * 2)
         widget.layout.inside.width = widget.layout.padding.width - widget.style.padding.width
 
+    # Use the width of our image.
+    elif widget.style.width == Size.IMAGE:
+        if widget.image is None:
+            raise Exception('Widgets that get size from image must have an image')
+
+        widget.layout.padding.width = widget.image.width
+        widget.layout.inside.width = widget.layout.padding.width - widget.style.padding.width
+        widget.layout.border.width = widget.layout.padding.width + (widget.style.border_thickness * 2)
+        widget.layout.margin.width = widget.layout.border.width + widget.style.margin.width
+
     # Use the width defined in our own style.
     elif widget.style.width != Size.AUTO:
         widget.layout.padding.width = widget.style.width
@@ -108,6 +118,16 @@ def compute_height(widget: Widget, height: float = None) -> float:
         widget.layout.border.height = widget.layout.margin.height - widget.style.margin.height
         widget.layout.padding.height = widget.layout.border.height - (widget.style.border_thickness * 2)
         widget.layout.inside.height = widget.layout.padding.height - widget.style.padding.height
+
+    # Use the height of our image.
+    elif widget.style.height == Size.IMAGE:
+        if widget.image is None:
+            raise Exception('Widgets that get size from image must have an image')
+
+        widget.layout.padding.height = widget.image.height
+        widget.layout.inside.height = widget.layout.padding.height - widget.style.padding.height
+        widget.layout.border.height = widget.layout.padding.height + (widget.style.border_thickness * 2)
+        widget.layout.margin.height = widget.layout.border.height + widget.style.margin.height
 
     # Use the height defined in our own style.
     elif widget.style.height != Size.AUTO:
