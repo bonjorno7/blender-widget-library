@@ -115,7 +115,7 @@ class Corners:
         self.bottom_right = bottom_right if (bottom_right is not None) else self.bottom_left
 
     def __iter__(self) -> Iterator[float]:
-        return iter((self.top_left, self.top_right, self.bottom_right, self.bottom_left))
+        return iter((self.top_left, self.bottom_left, self.top_right, self.bottom_right))
 
     def clamped(self, size: float) -> Corners:
         half_size = size / 2
