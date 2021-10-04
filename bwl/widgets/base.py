@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, Tuple, Union
 
 from bpy.types import Context
 
-from ..content import Image
+from ..content import Image, Text
 from ..input import ModalEvent, ModalState
 from ..layout import Layout, compute_layout
 from ..render import render_widget
@@ -27,6 +27,7 @@ class Widget:
         self.style = Style()
 
         self.image: Union[Image, None] = None
+        self.text: Union[Text, None] = None
 
     @property
     def parent(self) -> Union[Widget, None]:

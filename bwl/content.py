@@ -28,3 +28,7 @@ class Image:
     @property
     def bindcode(self) -> int:
         return self.data.bindcode
+
+
+class Text:
+    pass
