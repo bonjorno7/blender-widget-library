@@ -29,6 +29,9 @@ class Image:
     def gl_free(self):
         self.data.gl_free()
 
+    def remove(self):
+        bpy.data.images.remove(self.data)
+
 
 class Text:
     pass
