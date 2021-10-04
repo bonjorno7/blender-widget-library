@@ -186,9 +186,9 @@ def compute_x(widget: Widget, x: float = None):
         else:
             offset = widget.layout.inside.width - widget.layout.content.width
             if widget.style.align_x == Align.CENTER:
-                widget.layout.content.x = widget.layout.inside.x - round(offset / 2)
+                widget.layout.content.x = widget.layout.inside.x + offset / 2
             elif widget.style.align_x == Align.END:
-                widget.layout.content.x = widget.layout.inside.x - offset
+                widget.layout.content.x = widget.layout.inside.x + offset
 
         # Calculate position for children.
         child_x = widget.layout.content.x
@@ -204,7 +204,7 @@ def compute_x(widget: Widget, x: float = None):
             else:
                 offset = widget.layout.inside.width - child.layout.margin.width
                 if widget.style.align_x == Align.CENTER:
-                    compute_x(child, widget.layout.inside.x + round(offset / 2))
+                    compute_x(child, widget.layout.inside.x + offset / 2)
                 elif widget.style.align_x == Align.END:
                     compute_x(child, widget.layout.inside.x + offset)
 
@@ -233,7 +233,7 @@ def compute_y(widget: Widget, y: float = None):
         else:
             offset = widget.layout.inside.height - widget.layout.content.height
             if widget.style.align_y == Align.CENTER:
-                widget.layout.content.y = widget.layout.inside.y + round(offset / 2)
+                widget.layout.content.y = widget.layout.inside.y + offset / 2
             elif widget.style.align_y == Align.END:
                 widget.layout.content.y = widget.layout.inside.y + offset
 
@@ -251,6 +251,6 @@ def compute_y(widget: Widget, y: float = None):
             else:
                 offset = widget.layout.inside.height - child.layout.margin.height
                 if widget.style.align_y == Align.CENTER:
-                    compute_y(child, widget.layout.inside.y + round(offset / 2))
+                    compute_y(child, widget.layout.inside.y + offset / 2)
                 elif widget.style.align_y == Align.END:
                     compute_y(child, widget.layout.inside.y + offset)
