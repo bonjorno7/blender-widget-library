@@ -16,7 +16,7 @@ from bpy.utils import register_class, unregister_class
 from .bwl.content import Image
 from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Direction, Justify, Size, Spacing
+from .bwl.style import Align, Color, Direction, Justify, Size, Sides
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets.base import Widget
 
@@ -36,7 +36,7 @@ class TestOperator(Operator):
 
             self.root = Widget()
             self.root.style.color = Color(0.8, 0.4, 0.2, 0.2)
-            self.root.style.padding = Spacing(5)
+            self.root.style.padding = Sides(5)
             self.root.style.width = 800
             self.root.style.height = 800
             self.root.style.border_radius = 20
@@ -50,19 +50,19 @@ class TestOperator(Operator):
             container_a.style.justify = Justify.SPACE
             container_a.style.align = Align.CENTER
             container_a.style.color = Color(0.0, 0.5, 1.0, 0.3)
-            container_a.style.margin = Spacing(5)
-            container_a.style.padding = Spacing(5)
+            container_a.style.margin = Sides(5)
+            container_a.style.padding = Sides(5)
             container_a.style.border_radius = 5
 
             widget_a = Widget(parent=container_a)
-            widget_a.style.margin = Spacing(5)
+            widget_a.style.margin = Sides(5)
             widget_a.style.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
             # Adjusted size use native resolution with our shader.
             widget_a.style.width = 252
             widget_a.style.height = 252
 
             widget_b = Widget(parent=container_a)
-            widget_b.style.margin = Spacing(5)
+            widget_b.style.margin = Sides(5)
             widget_b.style.color = Color(0.2, 0.2, 0.2)
             widget_b.style.width = 200
             widget_b.style.height = 50
@@ -76,12 +76,12 @@ class TestOperator(Operator):
             container_b.style.justify = Justify.END
             container_b.style.align = Align.END
             container_b.style.color = Color(0.0, 0.5, 1.0, 0.3)
-            container_b.style.margin = Spacing(5)
-            container_b.style.padding = Spacing(5)
+            container_b.style.margin = Sides(5)
+            container_b.style.padding = Sides(5)
             container_b.style.border_radius = 5
 
             widget_c = Widget(parent=container_b)
-            widget_c.style.margin = Spacing(5)
+            widget_c.style.margin = Sides(5)
             widget_c.style.color = Color(0.6, 0.6, 0.6, 0.6)
             widget_c.style.width = Size.FLEX
             widget_c.style.height = 50
@@ -90,7 +90,7 @@ class TestOperator(Operator):
             widget_c.style.border_color = Color(1.0, 1.0, 1.0, 0.4)
 
             widget_d = Widget(parent=container_b)
-            widget_d.style.margin = Spacing(5)
+            widget_d.style.margin = Sides(5)
             widget_d.style.color = Color(0.2, 0.2, 0.2)
             widget_d.style.width = 150
             widget_d.style.height = Size.FLEX

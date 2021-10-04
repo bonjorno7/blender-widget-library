@@ -40,8 +40,8 @@ class Size(Enum):
     FLEX = auto()
 
 
-class Spacing:
-    '''Spacing such as margin or padding.'''
+class Sides:
+    '''Values used for margin and padding.'''
 
     def __init__(self, top: float = None, right: float = None, bottom: float = None, left: float = None):
         '''Supports CSS margin/padding shorthand.'''
@@ -92,8 +92,8 @@ class Style:
         self.width: Union[Size, float] = Size.AUTO
         self.height: Union[Size, float] = Size.AUTO
 
-        self.margin: Spacing = Spacing()
-        self.padding: Spacing = Spacing()
+        self.margin: Sides = Sides()
+        self.padding: Sides = Sides()
 
         self.color: Color = Color(1, 1, 1)
         self.image: Union[Image, None] = None
