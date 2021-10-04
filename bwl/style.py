@@ -17,16 +17,8 @@ class Direction(Enum):
     VERTICAL = auto()
 
 
-class Justify(Enum):
-    '''How to place items along the main axis.'''
-    START = auto()
-    CENTER = auto()
-    END = auto()
-    SPACE = auto()
-
-
 class Align(Enum):
-    '''How to place items along the cross axis.'''
+    '''How to place items along an axis.'''
     START = auto()
     CENTER = auto()
     END = auto()
@@ -145,10 +137,10 @@ class Style:
 
     def __init__(self):
         self.display: Display = Display.VISIBLE
-
         self.direction: Direction = Direction.VERTICAL
-        self.justify: Justify = Justify.START
-        self.align: Align = Align.START
+
+        self.align_x: Align = Align.START
+        self.align_y: Align = Align.START
 
         self.x: float = 0
         self.y: float = 0
@@ -167,6 +159,7 @@ class Style:
 
 
 class TextStyle:
+    '''Visual properties of text.'''
 
     def __init__(self):
         self.color: Color = Color(1, 1, 1)

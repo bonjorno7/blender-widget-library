@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .style import Align, Direction, Display, Justify, Size
+from .style import Align, Direction, Display, Size
 
 if TYPE_CHECKING:
     from .widget import Widget
@@ -179,39 +179,33 @@ def compute_x(widget: Widget, x: float = None):
     widget.layout.padding.x = widget.layout.border.x + widget.style.border_thickness
     widget.layout.inside.x = widget.layout.padding.x + widget.style.padding.left
 
-    # Calculate content position based on justify.
+    # Calculate content position for horizontal layout.
     if widget.style.direction == Direction.HORIZONTAL:
-        if flex_children or widget.style.justify in (Justify.START, Justify.SPACE):
+        if flex_children or widget.style.align_x == Align.START:
             widget.layout.content.x = widget.layout.inside.x
         else:
             offset = widget.layout.inside.width - widget.layout.content.width
-            if widget.style.justify == Justify.CENTER:
+            if widget.style.align_x == Align.CENTER:
                 widget.layout.content.x = widget.layout.inside.x - round(offset / 2)
-            elif widget.style.justify == Justify.END:
+            elif widget.style.align_x == Align.END:
                 widget.layout.content.x = widget.layout.inside.x - offset
-
-        # Calculate gap for justify space.
-        if widget.style.justify == Justify.SPACE and not flex_children and len(children) > 1:
-            offset = round((widget.layout.inside.width - widget.layout.content.width) / (len(children) - 1))
-        else:
-            offset = 0
 
         # Calculate position for children.
         child_x = widget.layout.content.x
         for child in children:
             compute_x(child, child_x)
-            child_x += child.layout.margin.width + offset
+            child_x += child.layout.margin.width
 
-    # Calculate content position based on align.
+    # Calculate content position for vertical layout.
     elif widget.style.direction == Direction.VERTICAL:
         for child in children:
-            if widget.style.align == Align.START:
+            if widget.style.align_x == Align.START:
                 compute_x(child, widget.layout.inside.x)
             else:
                 offset = widget.layout.inside.width - child.layout.margin.width
-                if widget.style.align == Align.CENTER:
+                if widget.style.align_x == Align.CENTER:
                     compute_x(child, widget.layout.inside.x + round(offset / 2))
-                elif widget.style.align == Align.END:
+                elif widget.style.align_x == Align.END:
                     compute_x(child, widget.layout.inside.x + offset)
 
 
@@ -232,37 +226,31 @@ def compute_y(widget: Widget, y: float = None):
     widget.layout.padding.y = widget.layout.border.y + widget.style.border_thickness
     widget.layout.inside.y = widget.layout.padding.y + widget.style.padding.top
 
-    # Calculate content position based on justify.
+    # Calculate content position for vertical layout.
     if widget.style.direction == Direction.VERTICAL:
-        if flex_children or widget.style.justify in (Justify.START, Justify.SPACE):
+        if flex_children or widget.style.align_y == Align.START:
             widget.layout.content.y = widget.layout.inside.y
         else:
             offset = widget.layout.inside.height - widget.layout.content.height
-            if widget.style.justify == Justify.CENTER:
-                widget.layout.content.y = widget.layout.inside.y - round(offset / 2)
-            elif widget.style.justify == Justify.END:
-                widget.layout.content.y = widget.layout.inside.y - offset
-
-        # Calculate gap for justify space.
-        if widget.style.justify == Justify.SPACE and not flex_children and len(children) > 1:
-            offset = round((widget.layout.inside.height - widget.layout.content.height) / (len(children) - 1))
-        else:
-            offset = 0
+            if widget.style.align_y == Align.CENTER:
+                widget.layout.content.y = widget.layout.inside.y + round(offset / 2)
+            elif widget.style.align_y == Align.END:
+                widget.layout.content.y = widget.layout.inside.y + offset
 
         # Calculate position for children.
         child_y = widget.layout.content.y
         for child in children:
             compute_y(child, child_y)
-            child_y += child.layout.margin.height + offset
+            child_y += child.layout.margin.height
 
-    # Calculate content position based on align.
+    # Calculate content position for horizontal layout.
     elif widget.style.direction == Direction.HORIZONTAL:
         for child in children:
-            if widget.style.align == Align.START:
+            if widget.style.align_y == Align.START:
                 compute_y(child, widget.layout.inside.y)
             else:
                 offset = widget.layout.inside.height - child.layout.margin.height
-                if widget.style.align == Align.CENTER:
+                if widget.style.align_y == Align.CENTER:
                     compute_y(child, widget.layout.inside.y + round(offset / 2))
-                elif widget.style.align == Align.END:
+                elif widget.style.align_y == Align.END:
                     compute_y(child, widget.layout.inside.y + offset)

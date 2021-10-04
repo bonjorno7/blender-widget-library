@@ -16,7 +16,7 @@ from bpy.utils import register_class, unregister_class
 from .bwl.content import Image
 from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Corners, Direction, Justify, Sides, Size
+from .bwl.style import Align, Color, Corners, Direction, Sides, Size
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widget import Widget
 
@@ -48,8 +48,8 @@ class ExampleOperator(Operator):
             container_a.style.direction = Direction.VERTICAL
             container_a.style.width = 400
             container_a.style.height = 500
-            container_a.style.justify = Justify.SPACE
-            container_a.style.align = Align.CENTER
+            container_a.style.align_x = Align.CENTER
+            container_a.style.align_y = Align.CENTER
             container_a.style.color = Color(0.0, 0.5, 1.0, 0.3)
             container_a.style.margin = Sides(5)
             container_a.style.padding = Sides(5)
@@ -73,8 +73,8 @@ class ExampleOperator(Operator):
             container_b.style.direction = Direction.HORIZONTAL
             container_b.style.width = Size.FLEX
             container_b.style.height = Size.FLEX
-            container_b.style.justify = Justify.END
-            container_b.style.align = Align.END
+            container_b.style.align_x = Align.END
+            container_b.style.align_y = Align.END
             container_b.style.color = Color(0.0, 0.5, 1.0, 0.3)
             container_b.style.margin = Sides(5)
             container_b.style.padding = Sides(5)
