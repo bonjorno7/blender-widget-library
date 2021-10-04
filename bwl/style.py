@@ -164,3 +164,11 @@ class Style:
 
         self.border_radius: Corners = Corners()
         self.border_thickness: float = 0
+
+
+class TextStyle:
+
+    def __init__(self):
+        self.color: Color = Color(1, 1, 1)
+        self.font_id = 0
+        self.font_size: int = 24

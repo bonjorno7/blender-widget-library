@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import bgl
+import blf
 from bpy.types import Context
 from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
@@ -112,3 +113,19 @@ def render_widget(context: Context, widget: Widget) -> None:
         bgl.glDisable(bgl.GL_BLEND)
 
         image.gl_free()
+
+    if widget.text is not None:
+        x = widget.layout.text.x
+        y = widget.layout.text.y
+        height = widget.layout.text.height
+
+        # Offset Y to work with OpenGL.
+        y = context.area.height - y - height
+
+        font_id = widget.text.style.font_id
+        color = widget.text.style.color
+
+        blf.color(font_id, *color)
+        blf.size(font_id, widget.text.style.font_size, 72)
+        blf.position(font_id, x, y, 0)
+        blf.draw(font_id, widget.text.data)

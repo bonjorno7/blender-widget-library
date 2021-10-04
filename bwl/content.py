@@ -4,6 +4,8 @@ from pathlib import Path
 
 import bpy
 
+from .style import TextStyle
+
 
 class Image:
 
@@ -34,4 +36,7 @@ class Image:
 
 
 class Text:
-    pass
+
+    def __init__(self, data: str, text_style: TextStyle = TextStyle()) -> None:
+        self.data = data
+        self.style: TextStyle = text_style
