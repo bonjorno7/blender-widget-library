@@ -19,15 +19,15 @@ class Image:
     def height(self) -> int:
         return self.data.size[1]
 
+    @property
+    def bindcode(self) -> int:
+        return self.data.bindcode
+
     def gl_load(self) -> int:
         return self.data.gl_load()
 
     def gl_free(self):
         self.data.gl_free()
-
-    @property
-    def bindcode(self) -> int:
-        return self.data.bindcode
 
 
 class Text:
