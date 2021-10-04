@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import blf
+
 from .style import Align, Direction, Display, Size
 
 if TYPE_CHECKING:
@@ -26,6 +28,7 @@ class Layout:
     '''Position and size of a widget.'''
 
     def __init__(self) -> None:
+        self.text = Area()
         self.content = Area()
         self.inside = Area()
         self.padding = Area()
@@ -40,6 +43,10 @@ def compute_layout(widget: Widget):
     compute_height(widget)
     compute_x(widget)
     compute_y(widget)
+
+    compute_text_size(widget)
+    compute_text_x(widget)
+    compute_text_y(widget)
 
 
 def compute_width(widget: Widget, width: float = None) -> float:
@@ -254,3 +261,52 @@ def compute_y(widget: Widget, y: float = None):
                     compute_y(child, widget.layout.inside.y + offset / 2)
                 elif widget.style.align_y == Align.END:
                     compute_y(child, widget.layout.inside.y + offset)
+
+
+def compute_text_size(widget: Widget):
+    if widget.text is not None:
+        font_id = widget.text.style.font_id
+        blf.size(font_id, widget.text.style.font_size, 72)
+
+        # Get height from capital A because it looks better.
+        width = blf.dimensions(font_id, widget.text.data)[0]
+        height = blf.dimensions(font_id, 'A')[1]
+
+        widget.layout.text.width = width
+        widget.layout.text.height = height
+
+    for child in widget.children:
+        if child.style.display != Display.NONE:
+            compute_text_size(child)
+
+
+def compute_text_x(widget: Widget):
+    if widget.text is not None:
+        if widget.style.align_x == Align.START:
+            widget.layout.text.x = widget.layout.inside.x
+        else:
+            offset = widget.layout.inside.width - widget.layout.text.width
+            if widget.style.align_x == Align.CENTER:
+                widget.layout.text.x = widget.layout.inside.x + offset / 2
+            elif widget.style.align_x == Align.END:
+                widget.layout.text.x = widget.layout.inside.x + offset
+
+    for child in widget.children:
+        if child.style.display != Display.NONE:
+            compute_text_x(child)
+
+
+def compute_text_y(widget: Widget):
+    if widget.text is not None:
+        if widget.style.align_y == Align.START:
+            widget.layout.text.y = widget.layout.inside.y
+        else:
+            offset = widget.layout.inside.height - widget.layout.text.height
+            if widget.style.align_y == Align.CENTER:
+                widget.layout.text.y = widget.layout.inside.y + offset / 2
+            elif widget.style.align_y == Align.END:
+                widget.layout.text.y = widget.layout.inside.y + offset
+
+    for child in widget.children:
+        if child.style.display != Display.NONE:
+            compute_text_y(child)
