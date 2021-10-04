@@ -21,9 +21,9 @@ from .bwl.utils import hide_hud, show_hud
 from .bwl.widget import Widget
 
 
-class TestOperator(Operator):
-    bl_idname = 'bwl.test'
-    bl_label = 'BWL Test'
+class ExampleOperator(Operator):
+    bl_idname = 'bwl.example'
+    bl_label = 'BWL Example'
     bl_description = 'Test the Blender Widget Library'
     bl_options = {'REGISTER'}
 
@@ -154,7 +154,7 @@ class TestOperator(Operator):
             pass
 
 
-classes = (TestOperator,)
+classes = (ExampleOperator,)
 
 
 def register():
