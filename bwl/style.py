@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import Iterator, Union
+from typing import Iterator, Union, overload
 
 
 class Display(Enum):
@@ -42,8 +42,27 @@ class Size(Enum):
 class Sides:
     '''Values used for margin and padding.'''
 
+    @overload
+    def __init__(self):
+        ...
+
+    @overload
+    def __init__(self, value: float):
+        ...
+
+    @overload
+    def __init__(self, vertical: float, horizontal: float):
+        ...
+
+    @overload
+    def __init__(self, top: float, horizontal: float, bottom: float):
+        ...
+
+    @overload
+    def __init__(self, top: float, right: float, bottom: float, left: float):
+        ...
+
     def __init__(self, top: float = None, right: float = None, bottom: float = None, left: float = None):
-        '''Supports CSS margin/padding shorthand.'''
         self.top = top if (top is not None) else 0
         self.right = right if (right is not None) else self.top
         self.bottom = bottom if (bottom is not None) else self.top
@@ -60,6 +79,54 @@ class Sides:
         return self.top + self.bottom
 
 
+class Corners:
+    '''Values used for border radius.'''
+
+    @overload
+    def __init__(self):
+        ...
+
+    @overload
+    def __init__(self, value: float):
+        ...
+
+    @overload
+    def __init__(self, top: float, bottom: float):
+        ...
+
+    @overload
+    def __init__(self, top_left: float, bottom: float, top_right: float):
+        ...
+
+    @overload
+    def __init__(self, top_left: float, bottom_left: float, top_right: float, bottom_right: float):
+        ...
+
+    def __init__(
+        self,
+        top_left: float = None,
+        bottom_left: float = None,
+        top_right: float = None,
+        bottom_right: float = None,
+    ):
+        self.top_left = top_left if (top_left is not None) else 0
+        self.bottom_left = bottom_left if (bottom_left is not None) else self.top_left
+        self.top_right = top_right if (top_right is not None) else self.top_left
+        self.bottom_right = bottom_right if (bottom_right is not None) else self.bottom_left
+
+    def __iter__(self) -> Iterator[float]:
+        return iter((self.top_left, self.top_right, self.bottom_right, self.bottom_left))
+
+    def clamped(self, size: float) -> Corners:
+        half_size = size / 2
+        return Corners(
+            min(half_size, self.top_left),
+            min(half_size, self.bottom_left),
+            min(half_size, self.top_right),
+            min(half_size, self.bottom_right),
+        )
+
+
 class Color:
     '''Color in float values including alpha.'''
 
@@ -70,7 +137,6 @@ class Color:
         self.alpha = alpha
 
     def __iter__(self) -> Iterator[float]:
-        '''Iterate over the color channels.'''
         return iter((self.red, self.green, self.blue, self.alpha))
 
 
@@ -78,7 +144,6 @@ class Style:
     '''Visual properties of a widget.'''
 
     def __init__(self):
-        '''Styles do not cascade.'''
         self.display: Display = Display.VISIBLE
 
         self.direction: Direction = Direction.VERTICAL
@@ -97,5 +162,5 @@ class Style:
         self.color: Color = Color(1, 1, 1)
         self.border_color: Color = Color(0, 0, 0)
 
-        self.border_radius: float = 0
+        self.border_radius: Corners = Corners()
         self.border_thickness: float = 0

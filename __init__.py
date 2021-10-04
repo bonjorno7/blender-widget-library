@@ -16,7 +16,7 @@ from bpy.utils import register_class, unregister_class
 from .bwl.content import Image
 from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Direction, Justify, Sides, Size
+from .bwl.style import Align, Color, Corners, Direction, Justify, Sides, Size
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widget import Widget
 
@@ -39,7 +39,7 @@ class TestOperator(Operator):
             self.root.style.padding = Sides(5)
             self.root.style.width = 800
             self.root.style.height = 800
-            self.root.style.border_radius = 20
+            self.root.style.border_radius = Corners(20)
             self.root.style.border_thickness = 1
             self.root.style.direction = Direction.HORIZONTAL
 
@@ -52,7 +52,7 @@ class TestOperator(Operator):
             container_a.style.color = Color(0.0, 0.5, 1.0, 0.3)
             container_a.style.margin = Sides(5)
             container_a.style.padding = Sides(5)
-            container_a.style.border_radius = 5
+            container_a.style.border_radius = Corners(5)
 
             widget_a = Widget(parent=container_a)
             widget_a.style.margin = Sides(5)
@@ -65,7 +65,7 @@ class TestOperator(Operator):
             widget_b.style.color = Color(0.2, 0.2, 0.2)
             widget_b.style.width = 200
             widget_b.style.height = 50
-            widget_b.style.border_radius = 5
+            widget_b.style.border_radius = Corners(5)
             widget_b.style.border_thickness = 20
 
             container_b = Widget(parent=self.root)
@@ -77,7 +77,7 @@ class TestOperator(Operator):
             container_b.style.color = Color(0.0, 0.5, 1.0, 0.3)
             container_b.style.margin = Sides(5)
             container_b.style.padding = Sides(5)
-            container_b.style.border_radius = 5
+            container_b.style.border_radius = Corners(5)
 
             widget_c = Widget(parent=container_b)
             widget_c.style.margin = Sides(5)
@@ -85,7 +85,7 @@ class TestOperator(Operator):
             widget_c.style.width = Size.FLEX
             widget_c.style.height = 50
             widget_c.style.border_thickness = 50
-            widget_c.style.border_radius = 400
+            widget_c.style.border_radius = Corners(400, 20, 5, 0)
             widget_c.style.border_color = Color(1.0, 1.0, 1.0, 0.4)
 
             widget_d = Widget(parent=container_b)
@@ -93,7 +93,6 @@ class TestOperator(Operator):
             widget_d.style.color = Color(0.2, 0.2, 0.2)
             widget_d.style.width = 150
             widget_d.style.height = Size.FLEX
-            widget_d.style.border_radius = 0
 
             self.root.style.x = self.state.mouse_x
             self.root.style.y = self.state.mouse_y

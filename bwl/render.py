@@ -51,8 +51,7 @@ def render_widget(context: Context, widget: Widget) -> None:
     # Clamp border radius to border area.
     border_width = widget.layout.border.width
     border_height = widget.layout.border.height
-    if border_radius * 2 > min(border_width, border_height):
-        border_radius = min(border_width, border_height) / 2
+    border_radius = border_radius.clamped(min(border_width, border_height))
 
     vertices = (
         (x - border_thickness - 2, y - border_thickness - 2),
