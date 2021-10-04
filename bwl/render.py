@@ -66,7 +66,7 @@ def render_widget(context: Context, widget: Widget) -> None:
         (2, 3, 0),
     )
 
-    if widget.style.image is None:
+    if widget.image is None:
         if Shaders.standard is None:
             raise Exception('Shader must be compiled first')
 
@@ -99,12 +99,12 @@ def render_widget(context: Context, widget: Widget) -> None:
         Shaders.image.uniform_float('u_position', [x, y])
         Shaders.image.uniform_float('u_size', [width, height])
         Shaders.image.uniform_float('u_color', color)
-        Shaders.image.uniform_int('u_image', 0)
         Shaders.image.uniform_float('u_border_color', border_color)
         Shaders.image.uniform_float('u_border_radius', border_radius)
         Shaders.image.uniform_float('u_border_thickness', border_thickness)
+        Shaders.image.uniform_int('u_image', 0)
 
-        image = widget.style.image
+        image = widget.image
         if image.gl_load():
             raise Exception('Failed to load image')
 

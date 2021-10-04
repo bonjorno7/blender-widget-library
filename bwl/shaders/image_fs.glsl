@@ -5,10 +5,10 @@ out vec4 fragment_color;
 uniform vec2 u_position;
 uniform vec2 u_size;
 uniform vec4 u_color;
-uniform sampler2D u_image;
 uniform vec4 u_border_color;
 uniform float u_border_radius;
 uniform float u_border_thickness;
+uniform sampler2D u_image;
 
 float rect_sdf(vec2 p, vec2 s, float r)
 {

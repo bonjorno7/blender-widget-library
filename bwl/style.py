@@ -3,8 +3,6 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import Iterator, Union
 
-from .content import Image
-
 
 class Display(Enum):
     '''How to display the widget.'''
@@ -96,8 +94,7 @@ class Style:
         self.padding: Sides = Sides()
 
         self.color: Color = Color(1, 1, 1)
-        self.image: Union[Image, None] = None
-
         self.border_color: Color = Color(0, 0, 0)
+
         self.border_radius: float = 0
         self.border_thickness: float = 0

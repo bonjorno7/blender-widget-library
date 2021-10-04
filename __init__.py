@@ -56,7 +56,7 @@ class TestOperator(Operator):
 
             widget_a = Widget(parent=container_a)
             widget_a.style.margin = Sides(5)
-            widget_a.style.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
+            widget_a.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
             # Adjusted size use native resolution with our shader.
             widget_a.style.width = 252
             widget_a.style.height = 252
