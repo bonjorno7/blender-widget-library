@@ -1,5 +1,3 @@
-in vec2 uv_interp;
-
 out vec4 fragment_color;
 
 uniform vec2 u_position;
@@ -20,7 +18,9 @@ void main()
 {
     vec2 position = gl_FragCoord.xy - u_position.xy - u_size / 2.0;
     vec2 half_size = u_size / 2.0 + u_border_thickness;
-    vec4 color = u_color * texture(u_image, uv_interp);
+
+    vec2 uv = (gl_FragCoord.xy - u_position.xy) / u_size;
+    vec4 color = u_color * texture(u_image, uv);
 
     float dist_outside = rect_sdf(position, half_size, u_border_radius);
     float outside_mask = smoothstep(-1.0, 1.0, dist_outside * 1.5);

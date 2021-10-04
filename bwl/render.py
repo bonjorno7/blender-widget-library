@@ -84,14 +84,6 @@ def render_widget(context: Context, widget: Widget) -> None:
         bgl.glDisable(bgl.GL_BLEND)
 
     else:
-        # TODO: Adjust UVs according to border thickness + 2.
-        uvs = (
-            (0, 0),
-            (1, 0),
-            (1, 1),
-            (0, 1),
-        )
-
         if Shaders.image is None:
             raise Exception('Shader must be compiled first')
 
@@ -112,7 +104,7 @@ def render_widget(context: Context, widget: Widget) -> None:
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
 
-        batch: GPUBatch = batch_for_shader(Shaders.image, 'TRIS', {'position': vertices, 'uv': uvs}, indices=indices)
+        batch: GPUBatch = batch_for_shader(Shaders.image, 'TRIS', {'position': vertices}, indices=indices)
         batch.draw(Shaders.image)
 
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)

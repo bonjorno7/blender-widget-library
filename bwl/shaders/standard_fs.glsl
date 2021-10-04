@@ -1,11 +1,11 @@
+out vec4 fragment_color;
+
 uniform vec2 u_position;
 uniform vec2 u_size;
 uniform vec4 u_color;
 uniform vec4 u_border_color;
 uniform float u_border_radius;
 uniform float u_border_thickness;
-
-out vec4 fragment_color;
 
 float rect_sdf(vec2 p, vec2 s, float r)
 {
