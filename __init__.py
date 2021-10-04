@@ -13,10 +13,10 @@ from pathlib import Path
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
-from .bwl.content import Image
+from .bwl.content import Image, Text
 from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Corners, Direction, Sides, Size
+from .bwl.style import Align, Color, Corners, Direction, Sides, Size, TextStyle
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widget import Widget
 
@@ -57,17 +57,22 @@ class ExampleOperator(Operator):
 
             widget_a = Widget(parent=container_a)
             widget_a.style.margin = Sides(5)
-            widget_a.image = self.image
             widget_a.style.width = Size.IMAGE
             widget_a.style.height = Size.IMAGE
+            widget_a.image = self.image
 
             widget_b = Widget(parent=container_a)
+            widget_b.style.align_x = Align.CENTER
+            widget_b.style.align_y = Align.CENTER
             widget_b.style.margin = Sides(5)
             widget_b.style.color = Color(0.2, 0.2, 0.2)
-            widget_b.style.width = 200
-            widget_b.style.height = 50
+            widget_b.style.width = 240
+            widget_b.style.height = 80
             widget_b.style.border_radius = Corners(5)
             widget_b.style.border_thickness = 20
+            text_style = TextStyle()
+            text_style.font_size = 26
+            widget_b.text = Text('Text Example', text_style)
 
             container_b = Widget(parent=self.root)
             container_b.style.direction = Direction.HORIZONTAL
