@@ -30,6 +30,7 @@ class ExampleOperator(Operator):
     def invoke(self, context: Context, event: Event) -> set:
         try:
             compile_shaders()
+            self.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
 
             self.state = ModalState(context, event)
             self.event_esc = ModalEvent('ESC')
@@ -56,7 +57,7 @@ class ExampleOperator(Operator):
 
             widget_a = Widget(parent=container_a)
             widget_a.style.margin = Sides(5)
-            widget_a.image = Image(Path(__file__).parent.joinpath('resources', 'blender.png'))
+            widget_a.image = self.image
             widget_a.style.width = Size.IMAGE
             widget_a.style.height = Size.IMAGE
 
@@ -150,6 +151,11 @@ class ExampleOperator(Operator):
 
         try:
             context.area.tag_redraw()
+        except:
+            pass
+
+        try:
+            self.image.remove()
         except:
             pass
 
