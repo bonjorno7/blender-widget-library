@@ -102,6 +102,8 @@ def render_widget(context: Context, widget: Widget) -> None:
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
 
         batch: GPUBatch = batch_for_shader(Shaders.image, 'TRIS', {'position': vertices}, indices=indices)
         batch.draw(Shaders.image)
