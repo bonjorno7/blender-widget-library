@@ -4,11 +4,11 @@ from typing import Callable, Dict, List, Tuple, Union
 
 from bpy.types import Context
 
-from ..content import Image, Text
-from ..input import ModalEvent, ModalState
-from ..layout import Layout, compute_layout
-from ..render import render_widget
-from ..style import Display, Style
+from .content import Image, Text
+from .input import ModalEvent, ModalState
+from .layout import Layout, compute_layout
+from .render import render_widget
+from .style import Display, Style
 
 
 class Widget:

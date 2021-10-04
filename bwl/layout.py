@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from .style import Align, Direction, Display, Justify, Size
 
 if TYPE_CHECKING:
-    from .widgets.base import Widget
+    from .widget import Widget
 
 
 class Area:

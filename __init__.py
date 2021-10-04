@@ -16,9 +16,9 @@ from bpy.utils import register_class, unregister_class
 from .bwl.content import Image
 from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Direction, Justify, Size, Sides
+from .bwl.style import Align, Color, Direction, Justify, Sides, Size
 from .bwl.utils import hide_hud, show_hud
-from .bwl.widgets.base import Widget
+from .bwl.widget import Widget
 
 
 class TestOperator(Operator):

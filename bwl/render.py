@@ -9,7 +9,7 @@ from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
 
 if TYPE_CHECKING:
-    from .widgets.base import Widget
+    from .widget import Widget
 
 
 class Shaders:
