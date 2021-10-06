@@ -60,14 +60,10 @@ class ModalEvent:
 
     def check(self, state: ModalState):
         '''Check whether this event is triggered in the given state.'''
-        # Value is nullable because we don't need it for mouse move events.
-        if (self._value is not None) and (self._value != state.event.value):
-            return False
-
-        # Do a regular comparison for the other variables.
         return all(
-            (a == b) for (a, b) in (
+            (a is None) or (a == b) for (a, b) in (
                 (self._type, state.event.type),
+                (self._value, state.event.value),
                 (self._shift, state.event.shift),
                 (self._ctrl, state.event.ctrl),
                 (self._alt, state.event.alt),
