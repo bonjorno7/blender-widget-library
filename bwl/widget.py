@@ -87,7 +87,7 @@ class Widget:
 
         if self.style.display == Display.SCROLL:
             for child in self.children:
-                if child.layout.scissor.contains(child.layout.border, partial=True):
+                if child.layout.scissor.contains(child.layout.border, True):
                     child.render(context)
 
         else:
