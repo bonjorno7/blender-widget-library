@@ -128,11 +128,37 @@ class Corners:
 class Color:
     '''Color in float values including alpha.'''
 
-    def __init__(self, red: float, green: float, blue: float, alpha: float = 1):
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
+    @overload
+    def __init__(self):
+        ...
+
+    @overload
+    def __init__(self, gray: float):
+        ...
+
+    @overload
+    def __init__(self, gray: float, alpha: float):
+        ...
+
+    @overload
+    def __init__(self, red: float, green: float, blue: float):
+        ...
+
+    @overload
+    def __init__(self, red: float, green: float, blue: float, alpha: float):
+        ...
+
+    def __init__(self, *args: float):
+        if len(args) == 0:
+            self.red, self.green, self.blue, self.alpha = (0, 0, 0, 1)
+        elif len(args) == 1:
+            self.red, self.green, self.blue, self.alpha = (args[0], args[0], args[0], 1)
+        elif len(args) == 2:
+            self.red, self.green, self.blue, self.alpha = (args[0], args[0], args[0], args[1])
+        elif len(args) == 3:
+            self.red, self.green, self.blue, self.alpha = (args[0], args[1], args[2], 1)
+        elif len(args) == 4:
+            self.red, self.green, self.blue, self.alpha = (args[0], args[1], args[2], args[3])
 
     def __iter__(self) -> Iterator[float]:
         return iter((self.red, self.green, self.blue, self.alpha))
@@ -160,8 +186,8 @@ class Style:
         self.margin: Sides = Sides()
         self.padding: Sides = Sides()
 
-        self.color: Color = Color(1, 1, 1)
-        self.border_color: Color = Color(0, 0, 0)
+        self.color: Color = Color(1)
+        self.border_color: Color = Color(0)
 
         self.border_radius: Corners = Corners()
         self.border_thickness: float = 0
@@ -171,6 +197,6 @@ class TextStyle:
     '''Visual properties of text.'''
 
     def __init__(self):
-        self.color: Color = Color(1, 1, 1)
+        self.color: Color = Color(1)
         self.font_id = 0
         self.font_size: int = 24

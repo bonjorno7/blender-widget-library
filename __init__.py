@@ -65,7 +65,7 @@ class ExampleOperator(Operator):
             widget_b.style.align_x = Align.CENTER
             widget_b.style.align_y = Align.CENTER
             widget_b.style.margin = Sides(5)
-            widget_b.style.color = Color(0.2, 0.2, 0.2)
+            widget_b.style.color = Color(0.2)
             widget_b.style.width = 240
             widget_b.style.height = 80
             widget_b.style.border_radius = Corners(5)
@@ -87,16 +87,16 @@ class ExampleOperator(Operator):
 
             widget_c = Widget(parent=container_b)
             widget_c.style.margin = Sides(5)
-            widget_c.style.color = Color(0.6, 0.6, 0.6, 0.6)
+            widget_c.style.color = Color(0.6, 0.6)
             widget_c.style.width = Size.FLEX
             widget_c.style.height = 50
             widget_c.style.border_thickness = 50
             widget_c.style.border_radius = Corners(400, 20, 5, 0)
-            widget_c.style.border_color = Color(1.0, 1.0, 1.0, 0.4)
+            widget_c.style.border_color = Color(1.0, 0.4)
 
             widget_d = Widget(parent=container_b)
             widget_d.style.margin = Sides(5)
-            widget_d.style.color = Color(0.2, 0.2, 0.2)
+            widget_d.style.color = Color(0.2)
             widget_d.style.width = 150
             widget_d.style.height = Size.FLEX
 
