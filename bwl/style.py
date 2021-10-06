@@ -146,6 +146,7 @@ class Style:
         self.visibility: Visibility = Visibility.VISIBLE
 
         self.direction: Direction = Direction.VERTICAL
+        self.scroll: float = 0
 
         self.align_x: Align = Align.START
         self.align_y: Align = Align.START

@@ -228,7 +228,7 @@ def compute_x(widget: Widget, x: float = None):
                 widget.layout.content.x = widget.layout.inside.x + offset
 
         # Calculate position for children.
-        child_x = widget.layout.content.x
+        child_x = widget.layout.content.x - widget.style.scroll
         for child in children:
             compute_x(child, child_x)
             child_x += child.layout.margin.width
@@ -275,7 +275,7 @@ def compute_y(widget: Widget, y: float = None):
                 widget.layout.content.y = widget.layout.inside.y + offset
 
         # Calculate position for children.
-        child_y = widget.layout.content.y
+        child_y = widget.layout.content.y - widget.style.scroll
         for child in children:
             compute_y(child, child_y)
             child_y += child.layout.margin.height
