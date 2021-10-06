@@ -9,6 +9,8 @@ from bpy.types import Context
 from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
 
+from .layout import Area
+
 if TYPE_CHECKING:
     from .widget import Widget
 
@@ -65,6 +67,12 @@ def render_widget(context: Context, widget: Widget) -> None:
         (0, 1, 2),
         (2, 3, 0),
     )
+
+    if widget.layout.scissor != None:
+        scissor: Area = round(widget.layout.scissor)
+
+        bgl.glScissor(scissor.x, context.area.height - scissor.y - scissor.height, scissor.width, scissor.height)
+        bgl.glEnable(bgl.GL_SCISSOR_TEST)
 
     if widget.image is None:
         if Shaders.standard is None:
@@ -129,3 +137,6 @@ def render_widget(context: Context, widget: Widget) -> None:
         blf.size(font_id, widget.text.style.font_size, 72)
         blf.position(font_id, x, y, 0)
         blf.draw(font_id, widget.text.data)
+
+    if widget.layout.scissor != None:
+        bgl.glDisable(bgl.GL_SCISSOR_TEST)
