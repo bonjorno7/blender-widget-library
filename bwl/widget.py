@@ -50,16 +50,26 @@ class Widget:
 
     def handle_event(self, state: ModalState, event: ModalEvent) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
-        if not self.layout.border.contains(state.mouse_x, state.mouse_y):
-            return False
+        function = self._events.get(event)
+
+        if event._area:
+            if not self.layout.border.contains(state.mouse_x, state.mouse_y):
+                return False
+
+        if event._reverse:
+            if (function is not None) and function(state):
+                return True
 
         for child in self.children:
             if child.style.display != Display.NONE:
                 if child.handle_event(state, event):
                     return True
 
-        function = self._events.get(event)
-        return function(state) if function else False
+        if not event._reverse:
+            if (function is not None) and function(state):
+                return True
+
+        return False
 
     def compute_layout(self):
         '''Compute layout of this widget and its children.'''

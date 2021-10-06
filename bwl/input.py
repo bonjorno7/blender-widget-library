@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Set
+from typing import Set, Union
 
 from bpy.types import Context, Event
 
@@ -45,14 +45,35 @@ class ModalState:
 class ModalEvent:
     '''Class for comparing against Blender events.'''
 
-    def __init__(self, type: str, value: str = None, shift: bool = False, ctrl: bool = False, alt: bool = False):
-        '''If value is None, it will not be checked.'''
-        self._hash = hash((type, value, shift, ctrl, alt))
+    def __init__(
+        self,
+        type: str,
+        value: Union[str, None] = None,
+        shift: Union[bool, None] = False,
+        ctrl: Union[bool, None] = False,
+        alt: Union[bool, None] = False,
+        area: bool = True,
+        reverse: bool = False,
+    ):
+        '''Create a ModalEvent.
+
+        Args:
+            type: Type of the event, for example LEFT_MOUSE or MOUSE_MOVE.
+            value: Value of the event, for example PRESS or RELEASE. None skips check.
+            shift: Shift should be held during the event. None skips check.
+            ctrl: Ctrl should be held during the event. None skips check.
+            alt: Alt should be held during the event. None skips check.
+            area: Check if the cursor is inside the widget.
+            reverse: Let parents handle events before children.
+        '''
+        self._hash = hash((type, value, shift, ctrl, alt, area, reverse))
         self._type = type
         self._value = value
         self._shift = shift
         self._ctrl = ctrl
         self._alt = alt
+        self._area = area
+        self._reverse = reverse
 
     def __hash__(self) -> int:
         '''Get the hash of this event, for use as dictionary key.'''
