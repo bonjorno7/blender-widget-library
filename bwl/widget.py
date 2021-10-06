@@ -83,7 +83,7 @@ class Widget:
             return
 
         if self.style.display != Visibility.HIDDEN:
-            render_widget(context, self)
+            render_widget(self, context)
 
         if self.style.display == Display.SCROLL:
             for child in self.children:

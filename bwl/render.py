@@ -36,7 +36,7 @@ def compile_shaders(recompile: bool = False) -> None:
         Shaders.image = GPUShader(vertex_source, fragment_source)
 
 
-def render_widget(context: Context, widget: Widget) -> None:
+def render_widget(widget: Widget, context: Context) -> None:
     '''Render a widget on the screen.'''
     x = widget.layout.padding.x
     y = widget.layout.padding.y
