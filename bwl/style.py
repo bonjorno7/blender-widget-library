@@ -6,10 +6,15 @@ from typing import Iterator, Union, overload
 
 class Display(Enum):
     '''How to display the widget.'''
-    VISIBLE = auto()
+    STANDARD = auto()
     SCROLL = auto()
-    HIDDEN = auto()
     NONE = auto()
+
+
+class Visibility(Enum):
+    '''How a widget should be rendered.'''
+    VISIBLE = auto()
+    HIDDEN = auto()
 
 
 class Direction(Enum):
@@ -137,7 +142,9 @@ class Style:
     '''Visual properties of a widget.'''
 
     def __init__(self):
-        self.display: Display = Display.VISIBLE
+        self.display: Display = Display.STANDARD
+        self.visibility: Visibility = Visibility.VISIBLE
+
         self.direction: Direction = Direction.VERTICAL
 
         self.align_x: Align = Align.START

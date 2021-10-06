@@ -8,7 +8,7 @@ from .content import Image, Text
 from .input import ModalEvent, ModalState
 from .layout import Layout, compute_layout
 from .render import render_widget
-from .style import Display, Style
+from .style import Display, Style, Visibility
 
 
 class Widget:
@@ -78,7 +78,7 @@ class Widget:
     def render(self, context: Context):
         '''Render this widget and its children.'''
         if self.style.display != Display.NONE:
-            if self.style.display != Display.HIDDEN:
+            if self.style.visibility != Visibility.HIDDEN:
                 render_widget(context, self)
 
             for child in self.children:
