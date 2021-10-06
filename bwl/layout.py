@@ -19,6 +19,9 @@ class Area:
         self.width = width
         self.height = height
 
+    def __round__(self) -> Area:
+        return Area(round(self.x), round(self.y), round(self.width), round(self.height))
+
     @overload
     def contains(self, x: float, y: float) -> bool:
         '''Check whether this area contains the given coordinates.'''
