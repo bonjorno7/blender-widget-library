@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union, overload
 
 import blf
 
@@ -19,9 +19,31 @@ class Area:
         self.width = width
         self.height = height
 
+    @overload
     def contains(self, x: float, y: float) -> bool:
         '''Check whether this area contains the given coordinates.'''
-        return (self.x < x < self.x + self.width) and (self.y < y < self.y + self.height)
+        ...
+
+    @overload
+    def contains(self, other: Area, partial: bool) -> bool:
+        '''Check whether this area contains the given area fully or partially.'''
+        ...
+
+    def contains(self, x: Union[float, Area], y: Union[float, bool]) -> bool:
+        if isinstance(x, Area):
+            other: Area = x
+            partial: bool = y
+
+            if partial:
+                if (self.x <= other.x + other.width) and (self.x + self.width >= other.x):
+                    return (self.y <= other.y + other.height) and (self.y + self.height >= other.y)
+            else:
+                if (self.x <= other.x) and (self.x + self.width >= other.x + other.width):
+                    return (self.y <= other.y) and (self.y + self.height >= other.y + other.height)
+
+            return False
+        else:
+            return (self.x < x < self.x + self.width) and (self.y < y < self.y + self.height)
 
 
 class Layout:
