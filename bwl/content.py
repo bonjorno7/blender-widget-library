@@ -37,6 +37,6 @@ class Image:
 
 class Text:
 
-    def __init__(self, data: str, text_style: TextStyle = TextStyle()) -> None:
+    def __init__(self, data: str, style: TextStyle = None):
         self.data = data
-        self.style: TextStyle = text_style
+        self.style: TextStyle = style if (style is not None) else TextStyle()
