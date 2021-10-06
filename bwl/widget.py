@@ -50,20 +50,22 @@ class Widget:
 
     def handle_event(self, state: ModalState, event: ModalEvent) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
-        function = self._events.get(event)
+        if self.style.display == Display.NONE:
+            return False
 
         if event._area:
             if not self.layout.border.contains(state.mouse_x, state.mouse_y):
                 return False
+
+        function = self._events.get(event)
 
         if event._reverse:
             if (function is not None) and function(state):
                 return True
 
         for child in self.children:
-            if child.style.display != Display.NONE:
-                if child.handle_event(state, event):
-                    return True
+            if child.handle_event(state, event):
+                return True
 
         if not event._reverse:
             if (function is not None) and function(state):
@@ -77,9 +79,17 @@ class Widget:
 
     def render(self, context: Context):
         '''Render this widget and its children.'''
-        if self.style.display != Display.NONE:
-            if self.style.visibility != Visibility.HIDDEN:
-                render_widget(context, self)
+        if self.style.display == Display.NONE:
+            return
 
+        if self.style.display != Visibility.HIDDEN:
+            render_widget(context, self)
+
+        if self.style.display == Display.SCROLL:
+            for child in self.children:
+                if child.layout.scissor.contains(child.layout.border, partial=True):
+                    child.render(context)
+
+        else:
             for child in self.children:
                 child.render(context)
