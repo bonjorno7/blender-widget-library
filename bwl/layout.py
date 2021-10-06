@@ -60,6 +60,9 @@ class Layout:
         self.border = Area()
         self.margin = Area()
 
+        # None means don't use scissor.
+        self.scissor: Union[Area, None] = None
+
 
 def compute_layout(widget: Widget):
     '''Compute layout for the given widget and its children.'''
@@ -68,6 +71,8 @@ def compute_layout(widget: Widget):
     compute_height(widget)
     compute_x(widget)
     compute_y(widget)
+
+    compute_scissor(widget)
 
     compute_text_size(widget)
     compute_text_x(widget)
@@ -286,6 +291,19 @@ def compute_y(widget: Widget, y: float = None):
                     compute_y(child, widget.layout.inside.y + offset / 2)
                 elif widget.style.align_y == Align.END:
                     compute_y(child, widget.layout.inside.y + offset)
+
+
+def compute_scissor(widget: Widget, area: Area = None):
+    if area is not None:
+        widget.layout.scissor = area
+    elif widget.style.display == Display.SCROLL:
+        widget.layout.scissor = widget.layout.padding
+    else:
+        widget.layout.scissor = None
+
+    for child in widget.children:
+        if child.style.display != Display.NONE:
+            compute_scissor(child, widget.layout.scissor)
 
 
 def compute_text_size(widget: Widget):
