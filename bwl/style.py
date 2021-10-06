@@ -7,6 +7,7 @@ from typing import Iterator, Union, overload
 class Display(Enum):
     '''How to display the widget.'''
     VISIBLE = auto()
+    SCROLL = auto()
     HIDDEN = auto()
     NONE = auto()
 
