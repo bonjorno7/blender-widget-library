@@ -199,4 +199,4 @@ class TextStyle:
     def __init__(self):
         self.color: Color = Color(1)
         self.font_id = 0
-        self.font_size: int = 24
+        self.font_size: int = 14
