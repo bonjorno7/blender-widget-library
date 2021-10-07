@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Union
 
 from bpy.types import Context
 
@@ -14,14 +14,12 @@ from ..style import Display, Style, Visibility
 class Widget:
     '''Widget which can render and handle events.'''
 
-    def __init__(self, parent: Union[Widget, None] = None):
-        self._parent: Union[Widget, None] = parent
-        self._children: List[Widget] = []
+    def __init__(self, parent: Widget = None):
+        if parent is not None:
+            parent.children.append(self)
 
-        if self._parent is not None:
-            self._parent._children.append(self)
-
-        self._events: Dict[ModalEvent, Callable] = {}
+        self.children: List[Widget] = []
+        self.events: Dict[ModalEvent, Callable] = {}
 
         self.layout = Layout()
         self.style = Style()
@@ -29,24 +27,14 @@ class Widget:
         self.image: Union[Image, None] = None
         self.text: Union[Text, None] = None
 
-    @property
-    def parent(self) -> Union[Widget, None]:
-        '''Widget that owns this widget.'''
-        return self._parent
-
-    @property
-    def children(self) -> Tuple[Widget]:
-        '''Widgets owned by this widget.'''
-        return tuple(self._children)
-
     def subscribe(self, event: ModalEvent, function: Callable):
         '''Add an event to this widget.'''
-        self._events[event] = function
+        self.events[event] = function
 
     def unsubscribe(self, event: ModalEvent):
         '''Remove an event from this widget.'''
-        if event in self._events:
-            self._events.pop(event)
+        if event in self.events:
+            self.events.pop(event)
 
     def handle_event(self, state: ModalState, event: ModalEvent) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
@@ -57,7 +45,7 @@ class Widget:
             if not self.layout.border.contains(state.mouse_x, state.mouse_y):
                 return False
 
-        function = self._events.get(event)
+        function = self.events.get(event)
 
         if event._reverse:
             if (function is not None) and function(state):
@@ -75,7 +63,8 @@ class Widget:
 
     def compute_layout(self):
         '''Compute layout of this widget and its children.'''
-        compute_layout(self)
+        if self.style.display != Display.NONE:
+            compute_layout(self)
 
     def render(self, context: Context):
         '''Render this widget and its children.'''
