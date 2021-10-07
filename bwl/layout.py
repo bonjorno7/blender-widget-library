@@ -7,7 +7,7 @@ import blf
 from .style import Align, Direction, Display, Size
 
 if TYPE_CHECKING:
-    from .widget import Widget
+    from .widgets import Widget
 
 
 class Area:

@@ -18,7 +18,7 @@ from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
 from .bwl.utils import hide_hud, show_hud
-from .bwl.widget import Widget
+from .bwl.widgets import Widget
 
 
 class ExampleOperator(Operator):

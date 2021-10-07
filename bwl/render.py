@@ -12,7 +12,7 @@ from gpu_extras.batch import batch_for_shader
 from .layout import Area
 
 if TYPE_CHECKING:
-    from .widget import Widget
+    from .widgets import Widget
 
 
 class Shaders:
