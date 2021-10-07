@@ -61,7 +61,7 @@ class Widget:
 
         return False
 
-    def compute_layout(self):
+    def compute_layout(self, context: Context):
         '''Compute layout of this widget and its children.'''
         if self.style.display != Display.NONE:
             compute_layout(self)
