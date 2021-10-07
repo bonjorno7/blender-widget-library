@@ -8,6 +8,7 @@ class Display(Enum):
     '''How to display the widget.'''
     STANDARD = auto()
     SCROLL = auto()
+    FLOAT = auto()
     NONE = auto()
 
 

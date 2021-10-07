@@ -208,7 +208,7 @@ def compute_x(widget: Widget, x: float = None):
     widget.layout.margin.x = widget.style.x
 
     # Add the position given by our parent.
-    if x is not None:
+    if (widget.style.display != Display.FLOAT) and (x is not None):
         widget.layout.margin.x += x
 
     # Calculate positions for other bounding boxes.
@@ -255,7 +255,7 @@ def compute_y(widget: Widget, y: float = None):
     widget.layout.margin.y = widget.style.y
 
     # Add the position given by our parent.
-    if y is not None:
+    if (widget.style.display != Display.FLOAT) and (y is not None):
         widget.layout.margin.y += y
 
     # Calculate positions for other bounding boxes.
