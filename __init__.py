@@ -18,7 +18,7 @@ from .bwl.input import ModalEvent, ModalState
 from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
 from .bwl.utils import hide_hud, show_hud
-from .bwl.widgets import Widget
+from .bwl.widgets import Screen, Widget, Window
 
 
 class ExampleOperator(Operator):
@@ -46,81 +46,77 @@ class ExampleOperator(Operator):
             self.event_lmb_release_area = ModalEvent('LEFTMOUSE', 'RELEASE', shift=None, ctrl=None, alt=None)
             self.event_mw_up = ModalEvent('WHEELUPMOUSE', 'PRESS')
             self.event_mw_dn = ModalEvent('WHEELDOWNMOUSE', 'PRESS')
-            # NEEDS TO BE TESTED, MIGHT NEED MORE NONEING.
-            self.event_mouse_move = ModalEvent('MOUSEMOVE', area=False)
+            self.event_mouse_move = ModalEvent('MOUSEMOVE', shift=None, ctrl=None, alt=None, area=False)
 
-            # Setup root widget.
-            self.root = Widget()
-            self.root.style.direction = Direction.VERTICAL
-            self.root.style.x = 150
-            self.root.style.y = 150
-            self.root.style.width = 800
-            self.root.style.height = 600
-            self.root.style.color = Color(0.15)
-            self.root.style.border_color = self.root.style.color
-            self.root.style.border_radius = Corners(10)
-            self.root.style.border_thickness = 1
+            # Setup screen.
+            self.screen = Screen()
+            self.screen.style.visibility = Visibility.VISIBLE
+            self.screen.style.color = Color(0, 0.8)
 
-            # TODO: Implement window dragging and resizing.
+            # Setup window A.
+            window_a = Window(parent=self.screen)
+            window_a.setup_events(
+                self.event_lmb_press,
+                self.event_lmb_release,
+                self.event_mouse_move,
+            )
+            window_a.style.direction = Direction.VERTICAL
+            window_a.style.x = 150
+            window_a.style.y = 150
+            window_a.style.width = 800
+            window_a.style.height = 600
+            window_a.style.margin = Sides(10)
+            window_a.style.color = Color(0.15)
+            window_a.style.border_color = window_a.style.color
+            window_a.style.border_radius = Corners(10)
+            window_a.style.border_thickness = 1
 
             # Setup title bar.
-            title_bar = Widget(parent=self.root)
-            title_bar.style.direction = Direction.HORIZONTAL
-            title_bar.style.align_x = Align.CENTER
-            title_bar.style.align_y = Align.CENTER
-            title_bar.style.width = Size.FLEX
-            title_bar.style.height = 30
-            title_bar.style.color = Color(0.2)
-            title_bar.style.border_radius = Corners(9, 0)
-            title_bar.text = Text('Blender Widget Library')
-
-            def event_lmb_press_title_bar(state: ModalState):
-                return True
-
-            def event_lmb_release_title_bar(state: ModalState):
-                return False
-
-            title_bar.subscribe(self.event_lmb_press, event_lmb_press_title_bar)
-            title_bar.subscribe(self.event_lmb_release, event_lmb_release_title_bar)
+            window_a.header.style.direction = Direction.HORIZONTAL
+            window_a.header.style.align_x = Align.CENTER
+            window_a.header.style.align_y = Align.CENTER
+            window_a.header.style.color = Color(0.2)
+            window_a.header.style.border_radius = Corners(9, 0)
+            window_a.header.text = Text('Blender Widget Library')
 
             # Setup window icon.
-            image_blender = Widget(parent=title_bar)
+            image_blender = Widget(parent=window_a.header)
             image_blender.style.width = Size.IMAGE
             image_blender.style.height = Size.IMAGE
             image_blender.style.margin = Sides(8)
             image_blender.image = self.image_blender
 
             # Title bar spacer.
-            spacer = Widget(parent=title_bar)
+            spacer = Widget(parent=window_a.header)
             spacer.style.visibility = Visibility.HIDDEN
             spacer.style.width = Size.FLEX
 
             # Setup exit button.
-            exit_button = Widget(parent=title_bar)
+            exit_button = Widget(parent=window_a.header)
             exit_button.style.width = 45
-            exit_button.style.height = title_bar.style.height
+            exit_button.style.height = window_a.header.style.height
             exit_button.style.color = Color(0.769, 0.169, 0.110, 0.5)
             exit_button.style.border_radius = Corners(0, 0, 9, 0)
             exit_button.style.align_x = Align.CENTER
             exit_button.style.align_y = Align.CENTER
 
-            def event_lmb_press_exit_button(state: ModalState):
+            def on_lmb_press_exit_button(state: ModalState):
                 self.exit_pressed = True
                 return True
 
-            def event_lmb_release_area_exit_button(state: ModalState):
+            def on_lmb_release_area_exit_button(state: ModalState):
                 if self.exit_pressed:
                     self.exit_released = True
                     return True
                 return False
 
-            def event_lmb_release_exit_button(state: ModalState):
+            def on_lmb_release_exit_button(state: ModalState):
                 self.exit_pressed = False
                 return False
 
-            exit_button.subscribe(self.event_lmb_press, event_lmb_press_exit_button)
-            exit_button.subscribe(self.event_lmb_release_area, event_lmb_release_area_exit_button)
-            exit_button.subscribe(self.event_lmb_release, event_lmb_release_exit_button)
+            exit_button.subscribe(self.event_lmb_press, on_lmb_press_exit_button)
+            exit_button.subscribe(self.event_lmb_release_area, on_lmb_release_area_exit_button)
+            exit_button.subscribe(self.event_lmb_release, on_lmb_release_exit_button)
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
@@ -128,17 +124,36 @@ class ExampleOperator(Operator):
             cross_icon.style.height = Size.IMAGE
             cross_icon.image = self.image_cross
 
-            frame = Widget(parent=self.root)
-            frame.style.direction = Direction.VERTICAL
-            frame.style.color = Color(0.25)
-            frame.style.padding = Sides(5)
-            frame.style.width = Size.FLEX
-            frame.style.height = Size.FLEX
-            frame.style.border_radius = Corners(0, 9)
+            window_a.frame.style.color = Color(0.25)
+            window_a.frame.style.padding = Sides(5)
+            window_a.frame.style.border_radius = Corners(0, 9)
+
+            # Setup window B.
+            window_b = Window(parent=self.screen)
+            window_b.setup_events(
+                self.event_lmb_press,
+                self.event_lmb_release,
+                self.event_mouse_move,
+            )
+            window_b.style.visibility = Visibility.HIDDEN
+            window_b.style.x = 500
+            window_b.style.y = 500
+            window_b.style.width = 400
+            window_b.style.height = 600
+            window_b.style.margin = Sides(10)
+
+            # Setup title bar.
+            window_b.header.style.align_x = Align.CENTER
+            window_b.header.style.align_y = Align.CENTER
+            window_b.header.style.color = Color(0.2)
+            window_b.header.text = Text('Another Window')
+
+            # Setup frame.
+            window_b.frame.style.color = Color(0.4)
 
             # Setup scroll boxes.
             for direction in Direction:
-                scroll_box = Widget(parent=frame)
+                scroll_box = Widget(parent=window_a.frame)
                 scroll_box.style.display = Display.SCROLL
                 scroll_box.style.direction = direction
                 scroll_box.style.width = Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO
@@ -182,7 +197,7 @@ class ExampleOperator(Operator):
                     element.text = Text('I am inside a scroll box')
 
             # Finally compute the layout.
-            self.root.compute_layout()
+            self.screen.compute_layout(context)
             compile_shaders()
 
             self.setup(context)
@@ -211,15 +226,14 @@ class ExampleOperator(Operator):
                 ) if event.check(self.state)
             ]
 
-            for event in checked_events:
-                self.root.handle_event(self.state, event)
+            handled_events = [event for event in checked_events if self.screen.handle_event(self.state, event)]
 
             if self.exit_released:
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            if checked_events:
-                self.root.compute_layout()
+            if handled_events:
+                self.screen.compute_layout(context)
                 context.area.tag_redraw()
                 return {'RUNNING_MODAL'}
 
@@ -230,7 +244,7 @@ class ExampleOperator(Operator):
             raise
 
     def draw_callback(self, context: Context):
-        self.root.render(context)
+        self.screen.render(context)
 
     def setup(self, context: Context) -> bool:
         hide_hud(context)
@@ -259,7 +273,12 @@ class ExampleOperator(Operator):
             pass
 
         try:
-            self.image.remove()
+            self.image_blender.remove()
+        except:
+            pass
+
+        try:
+            self.image_cross.remove()
         except:
             pass
 
