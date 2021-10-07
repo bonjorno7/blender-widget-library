@@ -151,9 +151,25 @@ class ExampleOperator(Operator):
             # Setup frame.
             window_b.frame.style.color = Color(0.4)
 
+            # Create scroll box widget type.
+            class ScrollBox(Widget):
+
+                def event_scroll_up(self, state: ModalState):
+                    self.style.scroll = max(0, self.style.scroll - 10)
+                    return True
+
+                def event_scroll_dn(self, state: ModalState):
+                    if self.style.direction == Direction.HORIZONTAL:
+                        limit = self.layout.content.width - self.layout.inside.width
+                    elif self.style.direction == Direction.VERTICAL:
+                        limit = self.layout.content.height - self.layout.inside.height
+
+                    self.style.scroll = min(limit, self.style.scroll + 10)
+                    return True
+
             # Setup scroll boxes.
             for direction in Direction:
-                scroll_box = Widget(parent=window_a.frame)
+                scroll_box = ScrollBox(parent=window_a.frame)
                 scroll_box.style.display = Display.SCROLL
                 scroll_box.style.direction = direction
                 scroll_box.style.width = Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO
@@ -165,23 +181,8 @@ class ExampleOperator(Operator):
                 scroll_box.style.border_radius = Corners(5)
                 scroll_box.style.border_thickness = 1
 
-                # FIXME: Second scroll box eats events from both.
-
-                def event_scroll_up(state: ModalState):
-                    scroll_box.style.scroll = max(0, scroll_box.style.scroll - 10)
-                    return True
-
-                def event_scroll_dn(state: ModalState):
-                    if scroll_box.style.direction == Direction.HORIZONTAL:
-                        limit = scroll_box.layout.content.width - scroll_box.layout.inside.width
-                    elif scroll_box.style.direction == Direction.VERTICAL:
-                        limit = scroll_box.layout.content.height - scroll_box.layout.inside.height
-
-                    scroll_box.style.scroll = min(limit, scroll_box.style.scroll + 10)
-                    return True
-
-                scroll_box.subscribe(self.event_mw_up, event_scroll_up)
-                scroll_box.subscribe(self.event_mw_dn, event_scroll_dn)
+                scroll_box.subscribe(self.event_mw_up, scroll_box.event_scroll_up)
+                scroll_box.subscribe(self.event_mw_dn, scroll_box.event_scroll_dn)
 
                 # Setup scroll box items.
                 for _ in range(10):
