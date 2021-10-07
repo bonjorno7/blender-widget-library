@@ -79,14 +79,42 @@ class ModalEvent:
         '''Get the hash of this event, for use as dictionary key.'''
         return self._hash
 
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @property
+    def value(self) -> Union[str, None]:
+        return self._value
+
+    @property
+    def shift(self) -> Union[str, None]:
+        return self._shift
+
+    @property
+    def ctrl(self) -> Union[str, None]:
+        return self._ctrl
+
+    @property
+    def alt(self) -> Union[str, None]:
+        return self._alt
+
+    @property
+    def area(self) -> bool:
+        return self._area
+
+    @property
+    def reverse(self) -> bool:
+        return self._reverse
+
     def check(self, state: ModalState):
         '''Check whether this event is triggered in the given state.'''
         return all(
             (a is None) or (a == b) for (a, b) in (
-                (self._type, state.event.type),
-                (self._value, state.event.value),
-                (self._shift, state.event.shift),
-                (self._ctrl, state.event.ctrl),
-                (self._alt, state.event.alt),
+                (self.type, state.event.type),
+                (self.value, state.event.value),
+                (self.shift, state.event.shift),
+                (self.ctrl, state.event.ctrl),
+                (self.alt, state.event.alt),
             )
         )
