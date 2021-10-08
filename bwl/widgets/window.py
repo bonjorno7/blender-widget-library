@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..input import ModalEvent, ModalState
+from ..input import EventCopy, ModalState
 from ..style import Direction, Display, Size
 from . import Widget
 
@@ -26,22 +26,20 @@ class Window(Widget):
         self.frame.style.width = Size.FLEX
         self.frame.style.height = Size.FLEX
 
+        self.header.subscribe(EventCopy(type='LEFTMOUSE', press=True), self._on_lmb_press, area=True)
+        self.header.subscribe(EventCopy(type='LEFTMOUSE', press=False), self._on_lmb_release, area=False)
+
         self._mouse_offset_x = 0
         self._mouse_offset_y = 0
 
-    def setup_events(self, event_lmb_press: ModalEvent, event_lmb_release: ModalEvent, event_mouse_move: ModalEvent):
-        self.header.subscribe(event_lmb_press, self._on_lmb_press)
-        self.header.subscribe(event_lmb_release, self._on_lmb_release)
-        self._event_mouse_move = event_mouse_move
-
     def _on_lmb_press(self, state: ModalState) -> bool:
-        self.header.subscribe(self._event_mouse_move, self._on_mouse_move)
+        self.header.subscribe(EventCopy(type='MOUSEMOVE'), self._on_mouse_move, area=False)
         self._mouse_offset_x = state.mouse_x - self.style.x
         self._mouse_offset_y = state.mouse_y - self.style.y
         return True
 
     def _on_lmb_release(self, state: ModalState) -> bool:
-        self.header.unsubscribe(self._event_mouse_move)
+        self.header.unsubscribe(EventCopy(type='MOUSEMOVE'))
         return False
 
     def _on_mouse_move(self, state: ModalState) -> bool:
