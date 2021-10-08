@@ -13,8 +13,8 @@ from pathlib import Path
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
-from .bwl.content import Image, Text
-from .bwl.input import ModalEvent, ModalState
+from .bwl.content import Font, Image, Text
+from .bwl.input import EventCopy, ModalState
 from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
 from .bwl.utils import hide_hud, show_hud
@@ -33,20 +33,21 @@ class ExampleOperator(Operator):
             self.exit_pressed = False
             self.exit_released = False
 
-            # Load images and fonts.
-            resources = Path(__file__).parent.joinpath('resources')
-            self.image_blender = Image(resources.joinpath('blender.png'))
-            self.image_cross = Image(resources.joinpath('cross.png'))
+            # Load resources.
+            resources_path = Path(__file__).parent.joinpath('resources')
+            res_image_blender = Image(resources_path.joinpath('blender.png'))
+            res_image_cross = Image(resources_path.joinpath('cross.png'))
+            res_font_roboto = Font(resources_path.joinpath('roboto.ttf'))
+
+            self.resources = (
+                res_image_blender,
+                res_image_cross,
+                res_font_roboto,
+            )
 
             # Setup events.
             self.state = ModalState(context, event)
-            self.event_esc = ModalEvent('ESC', 'PRESS')
-            self.event_lmb_press = ModalEvent('LEFTMOUSE', 'PRESS')
-            self.event_lmb_release = ModalEvent('LEFTMOUSE', 'RELEASE', shift=None, ctrl=None, alt=None, area=False)
-            self.event_lmb_release_area = ModalEvent('LEFTMOUSE', 'RELEASE', shift=None, ctrl=None, alt=None)
-            self.event_mw_up = ModalEvent('WHEELUPMOUSE', 'PRESS')
-            self.event_mw_dn = ModalEvent('WHEELDOWNMOUSE', 'PRESS')
-            self.event_mouse_move = ModalEvent('MOUSEMOVE', shift=None, ctrl=None, alt=None, area=False)
+            self.event_esc = EventCopy(type='ESC', press=True)
 
             # Setup screen.
             self.screen = Screen()
@@ -55,11 +56,6 @@ class ExampleOperator(Operator):
 
             # Setup window A.
             window_a = Window(parent=self.screen)
-            window_a.setup_events(
-                self.event_lmb_press,
-                self.event_lmb_release,
-                self.event_mouse_move,
-            )
             window_a.style.direction = Direction.VERTICAL
             window_a.style.x = 150
             window_a.style.y = 150
@@ -78,13 +74,15 @@ class ExampleOperator(Operator):
             window_a.header.style.color = Color(0.2)
             window_a.header.style.border_radius = Corners(9, 0)
             window_a.header.text = Text('Blender Widget Library')
+            window_a.header.text.style.font = res_font_roboto
+            window_a.header.text.style.color = Color(0.8)
 
             # Setup window icon.
             image_blender = Widget(parent=window_a.header)
             image_blender.style.width = Size.IMAGE
             image_blender.style.height = Size.IMAGE
             image_blender.style.margin = Sides(8)
-            image_blender.image = self.image_blender
+            image_blender.image = res_image_blender
 
             # Title bar spacer.
             spacer = Widget(parent=window_a.header)
@@ -104,25 +102,20 @@ class ExampleOperator(Operator):
                 self.exit_pressed = True
                 return True
 
-            def on_lmb_release_area_exit_button(state: ModalState):
-                if self.exit_pressed:
-                    self.exit_released = True
-                    return True
-                return False
-
             def on_lmb_release_exit_button(state: ModalState):
-                self.exit_pressed = False
+                if self.exit_pressed:
+                    self.exit_pressed = False
+                    self.exit_released = exit_button.is_mouse_inside(state)
                 return False
 
-            exit_button.subscribe(self.event_lmb_press, on_lmb_press_exit_button)
-            exit_button.subscribe(self.event_lmb_release_area, on_lmb_release_area_exit_button)
-            exit_button.subscribe(self.event_lmb_release, on_lmb_release_exit_button)
+            exit_button.subscribe(EventCopy(type='LEFTMOUSE', press=True), on_lmb_press_exit_button, area=True)
+            exit_button.subscribe(EventCopy(type='LEFTMOUSE', press=False), on_lmb_release_exit_button, area=False)
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
             cross_icon.style.width = Size.IMAGE
             cross_icon.style.height = Size.IMAGE
-            cross_icon.image = self.image_cross
+            cross_icon.image = res_image_cross
 
             window_a.frame.style.color = Color(0.25)
             window_a.frame.style.padding = Sides(5)
@@ -130,26 +123,22 @@ class ExampleOperator(Operator):
 
             # Setup window B.
             window_b = Window(parent=self.screen)
-            window_b.setup_events(
-                self.event_lmb_press,
-                self.event_lmb_release,
-                self.event_mouse_move,
-            )
-            window_b.style.visibility = Visibility.HIDDEN
             window_b.style.x = 500
             window_b.style.y = 500
             window_b.style.width = 400
             window_b.style.height = 600
+            window_b.style.color = Color(0.157, 0.173, 0.204)
             window_b.style.margin = Sides(10)
 
             # Setup title bar.
             window_b.header.style.align_x = Align.CENTER
             window_b.header.style.align_y = Align.CENTER
-            window_b.header.style.color = Color(0.2)
-            window_b.header.text = Text('Another Window')
+            window_b.header.style.color.alpha = 0
+            window_b.header.text = Text('One Dark Pro')
+            window_b.header.text.style.color = Color(0.61)
 
             # Setup frame.
-            window_b.frame.style.color = Color(0.4)
+            window_b.frame.style.color = Color(0.129, 0.145, 0.169)
 
             # Create scroll box widget type.
             class ScrollBox(Widget):
@@ -181,8 +170,8 @@ class ExampleOperator(Operator):
                 scroll_box.style.border_radius = Corners(5)
                 scroll_box.style.border_thickness = 1
 
-                scroll_box.subscribe(self.event_mw_up, scroll_box.event_scroll_up)
-                scroll_box.subscribe(self.event_mw_dn, scroll_box.event_scroll_dn)
+                scroll_box.subscribe(EventCopy(type='WHEELUPMOUSE', press=True), scroll_box.event_scroll_up)
+                scroll_box.subscribe(EventCopy(type='WHEELDOWNMOUSE', press=True), scroll_box.event_scroll_dn)
 
                 # Setup scroll box items.
                 for _ in range(10):
@@ -212,28 +201,19 @@ class ExampleOperator(Operator):
         try:
             self.state.update(context, event)
 
-            if self.event_esc.check(self.state):
+            event_copy = EventCopy.from_event(event)
+
+            if event_copy == self.event_esc:
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            checked_events = [
-                event for event in (
-                    self.event_lmb_press,
-                    self.event_lmb_release_area,
-                    self.event_lmb_release,
-                    self.event_mw_up,
-                    self.event_mw_dn,
-                    self.event_mouse_move,
-                ) if event.check(self.state)
-            ]
-
-            handled_events = [event for event in checked_events if self.screen.handle_event(self.state, event)]
+            handled = self.screen.handle_event(self.state, event_copy)
 
             if self.exit_released:
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            if handled_events:
+            if handled:
                 self.screen.compute_layout(context)
                 context.area.tag_redraw()
                 return {'RUNNING_MODAL'}
@@ -273,15 +253,11 @@ class ExampleOperator(Operator):
         except:
             pass
 
-        try:
-            self.image_blender.remove()
-        except:
-            pass
-
-        try:
-            self.image_cross.remove()
-        except:
-            pass
+        for resource in self.resources:
+            try:
+                resource.remove()
+            except:
+                pass
 
 
 classes = (ExampleOperator,)
