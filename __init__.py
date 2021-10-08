@@ -74,7 +74,6 @@ class ExampleOperator(Operator):
             window_a.header.style.color = Color(0.2)
             window_a.header.style.border_radius = Corners(9, 0)
             window_a.header.text = Text('Blender Widget Library')
-            window_a.header.text.style.font = res_font_roboto
             window_a.header.text.style.color = Color(0.8)
 
             # Setup window icon.
@@ -128,7 +127,6 @@ class ExampleOperator(Operator):
             window_b.style.width = 400
             window_b.style.height = 600
             window_b.style.color = Color(0.157, 0.173, 0.204)
-            window_b.style.margin = Sides(10)
 
             # Setup title bar.
             window_b.header.style.align_x = Align.CENTER
@@ -136,6 +134,7 @@ class ExampleOperator(Operator):
             window_b.header.style.color.alpha = 0
             window_b.header.text = Text('One Dark Pro')
             window_b.header.text.style.color = Color(0.61)
+            window_b.header.text.style.font = res_font_roboto
 
             # Setup frame.
             window_b.frame.style.color = Color(0.129, 0.145, 0.169)
