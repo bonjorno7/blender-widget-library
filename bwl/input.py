@@ -42,79 +42,54 @@ class ModalState:
             self.pressed.remove(event.type)
 
 
-class ModalEvent:
-    '''Class for comparing against Blender events.'''
+class EventCopy:
+    '''Copy of a Blender event. Used to send inputs to widgets.
 
-    def __init__(
-        self,
-        type: str,
-        value: Union[str, None] = None,
-        shift: Union[bool, None] = False,
-        ctrl: Union[bool, None] = False,
-        alt: Union[bool, None] = False,
-        area: bool = True,
-        reverse: bool = False,
-    ):
-        '''Create a ModalEvent.
+    Mouse move events ignore `press` `shift` `ctrl` `alt`.
 
-        Args:
-            type: Type of the event, for example LEFT_MOUSE or MOUSE_MOVE.
-            value: Value of the event, for example PRESS or RELEASE. None skips check.
-            shift: Shift should be held during the event. None skips check.
-            ctrl: Ctrl should be held during the event. None skips check.
-            alt: Alt should be held during the event. None skips check.
-            area: Check if the cursor is inside the widget.
-            reverse: Let parents handle events before children.
-        '''
-        self._hash = hash((type, value, shift, ctrl, alt, area, reverse))
+    Release events ignore `shift` `ctrl` `alt`.
+    '''
+
+    def __init__(self, type: str, press: bool = False, shift: bool = False, ctrl: bool = False, alt: bool = False):
+        if type == 'MOUSEMOVE':
+            press, shift, ctrl, alt = (None, None, None, None)
+        elif not press:
+            shift, ctrl, alt = (None, None, None)
+
         self._type = type
-        self._value = value
+        self._press = press
         self._shift = shift
         self._ctrl = ctrl
         self._alt = alt
-        self._area = area
-        self._reverse = reverse
+
+        self._hash = hash((self._type, self._press, self._shift, self._ctrl, self._alt))
 
     def __hash__(self) -> int:
-        '''Get the hash of this event, for use as dictionary key.'''
         return self._hash
+
+    def __eq__(self, other: EventCopy) -> bool:
+        return hash(self) == hash(other)
 
     @property
     def type(self) -> str:
         return self._type
 
     @property
-    def value(self) -> Union[str, None]:
-        return self._value
+    def press(self) -> Union[bool, None]:
+        return self._press
 
     @property
-    def shift(self) -> Union[str, None]:
+    def shift(self) -> Union[bool, None]:
         return self._shift
 
     @property
-    def ctrl(self) -> Union[str, None]:
+    def ctrl(self) -> Union[bool, None]:
         return self._ctrl
 
     @property
-    def alt(self) -> Union[str, None]:
+    def alt(self) -> Union[bool, None]:
         return self._alt
 
-    @property
-    def area(self) -> bool:
-        return self._area
-
-    @property
-    def reverse(self) -> bool:
-        return self._reverse
-
-    def check(self, state: ModalState):
-        '''Check whether this event is triggered in the given state.'''
-        return all(
-            (a is None) or (a == b) for (a, b) in (
-                (self.type, state.event.type),
-                (self.value, state.event.value),
-                (self.shift, state.event.shift),
-                (self.ctrl, state.event.ctrl),
-                (self.alt, state.event.alt),
-            )
-        )
+    @classmethod
+    def from_event(cls, event: Event) -> EventCopy:
+        return EventCopy(event.type, (event.value == 'PRESS'), event.shift, event.ctrl, event.alt)
