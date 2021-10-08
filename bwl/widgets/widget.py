@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 from bpy.types import Context
 
 from ..content import Image, Text
-from ..input import ModalEvent, ModalState
+from ..input import EventCopy, ModalState
 from ..layout import Layout, compute_layout
 from ..render import render_widget
 from ..style import Display, Style, Visibility
@@ -19,7 +19,7 @@ class Widget:
             parent.children.append(self)
 
         self.children: List[Widget] = []
-        self.events: Dict[ModalEvent, Callable] = {}
+        self.events: Dict[EventCopy, Tuple[Callable, bool, bool]] = {}
 
         self.layout = Layout()
         self.style = Style()
@@ -27,37 +27,39 @@ class Widget:
         self.image: Union[Image, None] = None
         self.text: Union[Text, None] = None
 
-    def subscribe(self, event: ModalEvent, function: Callable):
+    def subscribe(self, event: EventCopy, function: Callable, area: bool = True, reverse: bool = False):
         '''Add an event to this widget.'''
-        self.events[event] = function
+        self.events[event] = (function, area, reverse)
 
-    def unsubscribe(self, event: ModalEvent):
+    def unsubscribe(self, event: EventCopy):
         '''Remove an event from this widget.'''
         if event in self.events:
             self.events.pop(event)
 
-    def handle_event(self, state: ModalState, event: ModalEvent) -> bool:
+    def is_mouse_inside(self, state: ModalState) -> bool:
+        '''Check whether the cursor is inside the border of this widget.'''
+        return self.layout.border.contains(state.mouse_x, state.mouse_y)
+
+    def handle_event(self, state: ModalState, event: EventCopy) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
         if self.style.display == Display.NONE:
             return False
 
-        if event._area:
-            if not self.layout.border.contains(state.mouse_x, state.mouse_y):
-                return False
+        function, area, reverse = self.events.get(event, (None, None, None))
 
-        function = self.events.get(event)
+        if not reverse:
+            for child in reversed(self.children):
+                if child.handle_event(state, event):
+                    return True
 
-        if event._reverse:
-            if (function is not None) and function(state):
+        if not area or self.is_mouse_inside(state):
+            if function and function(state):
                 return True
 
-        for child in self.children:
-            if child.handle_event(state, event):
-                return True
-
-        if not event._reverse:
-            if (function is not None) and function(state):
-                return True
+        if reverse:
+            for child in self.children:
+                if child.handle_event(state, event):
+                    return True
 
         return False
 
