@@ -32,6 +32,14 @@ class Window(Widget):
         self._mouse_offset_x = 0
         self._mouse_offset_y = 0
 
+    def handle_event(self, state: ModalState, event: EventCopy) -> bool:
+        if super().handle_event(state, event):
+            return True
+
+        # Consume press events if cursor is inside.
+        elif event.press:
+            return self.is_mouse_inside(state)
+
     def _on_lmb_press(self, state: ModalState) -> bool:
         self.header.subscribe(EventCopy(type='MOUSEMOVE'), self._on_mouse_move, area=False)
         self._mouse_offset_x = state.mouse_x - self.style.x
