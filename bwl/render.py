@@ -130,13 +130,13 @@ def render_widget(widget: Widget, context: Context) -> None:
         # Offset Y to work with OpenGL.
         y = context.area.height - y - height
 
-        font_id = widget.text.style.font_id
-        color = widget.text.style.color
+        # Get the font ID once because it's a getter.
+        id = widget.text.style.font_id
 
-        blf.color(font_id, *color)
-        blf.size(font_id, widget.text.style.font_size, 72)
-        blf.position(font_id, x, y, 0)
-        blf.draw(font_id, widget.text.data)
+        blf.color(id, *widget.text.style.color)
+        blf.size(id, widget.text.style.font_size, 72)
+        blf.position(id, x, y, 0)
+        blf.draw(id, widget.text.data)
 
     if widget.layout.scissor != None:
         bgl.glDisable(bgl.GL_SCISSOR_TEST)
