@@ -47,21 +47,22 @@ class Widget:
 
         function, area, reverse = self.events.get(event, (None, None, None))
 
-        if not reverse:
+        def handle_self() -> bool:
+            if not area or self.is_mouse_inside(state):
+                if function and function(state):
+                    return True
+            return False
+
+        def handle_children() -> bool:
             for child in reversed(self.children):
                 if child.handle_event(state, event):
                     return True
-
-        if not area or self.is_mouse_inside(state):
-            if function and function(state):
-                return True
+            return False
 
         if reverse:
-            for child in self.children:
-                if child.handle_event(state, event):
-                    return True
-
-        return False
+            return handle_self() or handle_children()
+        else:
+            return handle_children() or handle_self()
 
     def compute_layout(self, context: Context):
         '''Compute layout of this widget and its children.'''
