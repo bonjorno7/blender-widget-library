@@ -22,10 +22,6 @@ class Screen(Widget):
     def handle_event(self, state: ModalState, event: EventCopy) -> bool:
         children = [child for child in self.children if child.style.display != Display.NONE]
 
-        # You should not call this on a screen with no children.
-        if not children:
-            return False
-
         # Mouse clicks focus the clicked widget.
         if event.type in ('LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE', 'BUTTON4MOUSE', 'BUTTON5MOUSE') and event.press:
             for child in reversed(children):
@@ -33,7 +29,6 @@ class Screen(Widget):
                     self.children.remove(child)
                     self.children.append(child)
 
-                    # Mouse events inside a widget are handled exclusively.
                     child.handle_event(state, event)
                     return True
 
@@ -41,17 +36,18 @@ class Screen(Widget):
         elif event.type in ('WHEELUPMOUSE', 'WHEELDOWNMOUSE', 'MOUSEMOVE'):
             for child in reversed(children):
                 if child.is_mouse_inside(state):
-                    # Mouse events inside a widget are handled exclusively.
                     child.handle_event(state, event)
                     return True
 
-        # Other events are handled exclusively by the focused widget.
-        if children[-1].handle_event(state, event):
-            return True
-
-        # If the cursor is on a widget, we always consider the event handled.
-        for child in reversed(children):
-            if child.is_mouse_inside(state):
+        # Other events are handled by the focused widget.
+        else:
+            if children and children[-1].handle_event(state, event):
                 return True
 
+            # If the cursor is on any widget, we consume the event.
+            for child in reversed(children):
+                if child.is_mouse_inside(state):
+                    return True
+
+        # If the event was not handled, it is passed through to Blender.
         return False
