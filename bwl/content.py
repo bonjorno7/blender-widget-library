@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import blf
 import bpy
 
 from .style import TextStyle
@@ -33,6 +34,16 @@ class Image:
 
     def remove(self):
         bpy.data.images.remove(self.data)
+
+
+class Font:
+
+    def __init__(self, path: str):
+        self.path = path
+        self.id = blf.load(str(path))
+
+    def remove(self):
+        blf.unload(self.path)
 
 
 class Text:
