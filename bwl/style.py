@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import Iterator, Union, overload
+from typing import TYPE_CHECKING, Iterator, Union, overload
+
+if TYPE_CHECKING:
+    from .content import Font
 
 
 class Display(Enum):
@@ -199,5 +202,10 @@ class TextStyle:
 
     def __init__(self):
         self.color: Color = Color(1)
-        self.font_id = 0
+
+        self.font: Union[Font, None] = None
         self.font_size: int = 14
+
+    @property
+    def font_id(self) -> int:
+        return self.font.id if (self.font is not None) else 0
