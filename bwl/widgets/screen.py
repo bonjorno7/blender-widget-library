@@ -6,8 +6,6 @@ from ..input import EventCopy, ModalState
 from ..style import Display, Visibility
 from . import Widget
 
-# TODO: Allow scroll events on windows that are not focused.
-
 
 class Screen(Widget):
     '''Window manager for the 3D view.'''
@@ -29,17 +27,25 @@ class Screen(Widget):
             return False
 
         # Mouse clicks focus the clicked widget.
-        if event.type in ('LEFTMOUSE', 'RIGHTMOUSE') and event.press:
+        if event.type in ('LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE', 'BUTTON4MOUSE', 'BUTTON5MOUSE') and event.press:
             for child in reversed(children):
                 if child.is_mouse_inside(state):
                     self.children.remove(child)
                     self.children.append(child)
 
-                    # Mouse clicks inside a widget are handled exclusively.
+                    # Mouse events inside a widget are handled exclusively.
                     child.handle_event(state, event)
                     return True
 
-        # Other events are handled by the focused widget.
+        # Mouse scroll and move are allowed on non-focused widgets.
+        elif event.type in ('WHEELUPMOUSE', 'WHEELDOWNMOUSE', 'MOUSEMOVE'):
+            for child in reversed(children):
+                if child.is_mouse_inside(state):
+                    # Mouse events inside a widget are handled exclusively.
+                    child.handle_event(state, event)
+                    return True
+
+        # Other events are handled exclusively by the focused widget.
         if children[-1].handle_event(state, event):
             return True
 
