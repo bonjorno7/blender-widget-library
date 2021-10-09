@@ -45,29 +45,30 @@ class Widget:
         if self.style.display == Display.NONE:
             return False
 
-        subscriptions_reverse: List[Subscription] = []
-        subscriptions: List[Subscription] = []
+        # Get lists of subscriptions to be handled before and after children.
+        subscriptions_matched = [s for (e, s) in self.subscriptions.items() if e.compare(state.event)]
+        subscriptions_reverse = [s for s in subscriptions_matched if s.reverse]
+        subscriptions_regular = [s for s in subscriptions_matched if not s.reverse]
 
-        for event, subscription in self.subscriptions.items():
-            if event.compare(state.event):
-                if subscription.reverse:
-                    subscriptions_reverse.append(subscription)
-                else:
-                    subscriptions.append(subscription)
+        # Check area if necessary, return if the subscription handled the event.
+        def handle_subscription(s: Subscription) -> bool:
+            return (not s.area or self.is_mouse_inside(state)) and s.callback(state)
 
-        for subscription in subscriptions_reverse:
-            if not subscription.area or self.is_mouse_inside(state):
-                if subscription.callback(state):
-                    return True
+        # Call all reverse subscriptions, return if any of them handled the event.
+        if any(list(map(handle_subscription, subscriptions_reverse))):
+            return True
 
+        # Send the event to each child, return early if one handled it.
         for child in reversed(self.children):
             if child.handle_event(state):
                 return True
 
-        for subscription in subscriptions:
-            if not subscription.area or self.is_mouse_inside(state):
-                if subscription.callback(state):
-                    return True
+        # Call all regular subscriptions, return if any of them handled the event.
+        if any(list(map(handle_subscription, subscriptions_regular))):
+            return True
+
+        # The event was not handled by this widget or its children.
+        return False
 
     def compute_layout(self, context: Context):
         '''Compute layout of this widget and its children.'''
