@@ -120,25 +120,6 @@ class ExampleOperator(Operator):
             window_a.frame.style.padding = Sides(5)
             window_a.frame.style.border_radius = Corners(0, 9)
 
-            # Setup window B.
-            window_b = Window(parent=self.screen)
-            window_b.style.x = 500
-            window_b.style.y = 500
-            window_b.style.width = 400
-            window_b.style.height = 600
-            window_b.style.color = Color(0.157, 0.173, 0.204)
-
-            # Setup title bar.
-            window_b.header.style.align_x = Align.CENTER
-            window_b.header.style.align_y = Align.CENTER
-            window_b.header.style.color.alpha = 0
-            window_b.header.text = Text('One Dark Pro')
-            window_b.header.text.style.color = Color(0.61)
-            window_b.header.text.style.font = res_font_roboto
-
-            # Setup frame.
-            window_b.frame.style.color = Color(0.129, 0.145, 0.169)
-
             # Create scroll box widget type.
             class ScrollBox(Widget):
 
@@ -184,6 +165,25 @@ class ExampleOperator(Operator):
                     element.style.border_color = Color(0.15)
                     element.style.border_thickness = 1
                     element.text = Text('I am inside a scroll box')
+
+            # Setup window B.
+            window_b = Window(parent=self.screen)
+            window_b.style.x = 500
+            window_b.style.y = 500
+            window_b.style.width = 400
+            window_b.style.height = 600
+            window_b.style.color = Color(0.157, 0.173, 0.204)
+
+            # Setup title bar.
+            window_b.header.style.align_x = Align.CENTER
+            window_b.header.style.align_y = Align.CENTER
+            window_b.header.style.color.alpha = 0
+            window_b.header.text = Text('One Dark Pro')
+            window_b.header.text.style.color = Color(0.61)
+            window_b.header.text.style.font = res_font_roboto
+
+            # Setup frame.
+            window_b.frame.style.color = Color(0.129, 0.145, 0.169)
 
             # Finally compute the layout.
             self.screen.compute_layout(context)
