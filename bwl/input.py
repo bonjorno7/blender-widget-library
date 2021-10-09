@@ -1,95 +1,58 @@
 from __future__ import annotations
 
-from typing import Set, Union
+from typing import Callable
 
 from bpy.types import Context, Event
 
+from .layout import Area
+
 
 class ModalState:
-    '''Class to keep track of mouse position and pressed keys.'''
+    '''Current operator state.'''
 
     def __init__(self, context: Context, event: Event):
         self.context = context
-        self.event = event
+        self.area = Area(0, 0, context.area.width, context.area.height)
 
+        self.event = event
         self.mouse_x = event.mouse_region_x
         self.mouse_y = context.area.height - event.mouse_region_y
 
-        self.mouse_prev_x = self.mouse_x
-        self.mouse_prev_y = self.mouse_y
 
-        self.mouse_delta_x = 0
-        self.mouse_delta_y = 0
+class ModalEvent:
+    '''Event which widgets can subscribe to.'''
 
-        self.pressed: Set[str] = set()
+    def __init__(self, type: str, value: str = None, shift: bool = None, ctrl: bool = None, alt: bool = None):
+        self.type = type
+        self.value = value
+        self.shift = shift
+        self.ctrl = ctrl
+        self.alt = alt
 
-    def update(self, context: Context, event: Event):
-        self.context = context
-        self.event = event
-
-        self.mouse_prev_x = self.mouse_x
-        self.mouse_prev_y = self.mouse_y
-
-        self.mouse_x = event.mouse_region_x
-        self.mouse_y = context.area.height - event.mouse_region_y
-
-        self.mouse_delta_x = self.mouse_x - self.mouse_prev_x
-        self.mouse_delta_y = self.mouse_y - self.mouse_prev_y
-
-        if event.value == 'PRESS':
-            self.pressed.add(event.type)
-        elif event.type in self.pressed:
-            self.pressed.remove(event.type)
-
-
-class EventCopy:
-    '''Copy of a Blender event. Used to send inputs to widgets.
-
-    Mouse move events ignore `press` `shift` `ctrl` `alt`.
-
-    Release events ignore `shift` `ctrl` `alt`.
-    '''
-
-    def __init__(self, type: str, press: bool = False, shift: bool = False, ctrl: bool = False, alt: bool = False):
-        if type == 'MOUSEMOVE':
-            press, shift, ctrl, alt = (None, None, None, None)
-        elif not press:
-            shift, ctrl, alt = (None, None, None)
-
-        self._type = type
-        self._press = press
-        self._shift = shift
-        self._ctrl = ctrl
-        self._alt = alt
-
-        self._hash = hash((self._type, self._press, self._shift, self._ctrl, self._alt))
-
+    # We need both __hash__ and __eq__ to use this class as dictionary key.
     def __hash__(self) -> int:
-        return self._hash
+        return hash((self.type, self.value, self.shift, self.ctrl, self.alt))
 
-    def __eq__(self, other: EventCopy) -> bool:
+    def __eq__(self, other: ModalEvent) -> bool:
         return hash(self) == hash(other)
 
-    @property
-    def type(self) -> str:
-        return self._type
+    def compare(self, event: Event) -> bool:
+        '''Compare this ModalEvent to a Blender Event.'''
+        return all(
+            (a is None) or (a == b) for (a, b) in (
+                (self.type, event.type),
+                (self.value, event.value),
+                (self.shift, event.shift),
+                (self.ctrl, event.ctrl),
+                (self.alt, event.alt),
+            )
+        )
 
-    @property
-    def press(self) -> Union[bool, None]:
-        return self._press
 
-    @property
-    def shift(self) -> Union[bool, None]:
-        return self._shift
+class Subscription:
+    '''Event subscription for a widget.'''
 
-    @property
-    def ctrl(self) -> Union[bool, None]:
-        return self._ctrl
-
-    @property
-    def alt(self) -> Union[bool, None]:
-        return self._alt
-
-    @classmethod
-    def from_event(cls, event: Event) -> EventCopy:
-        return EventCopy(event.type, (event.value == 'PRESS'), event.shift, event.ctrl, event.alt)
+    def __init__(self, callback: Callable[[ModalState], bool], area: bool = True, reverse: bool = False):
+        self.callback = callback
+        self.area = area
+        self.reverse = reverse

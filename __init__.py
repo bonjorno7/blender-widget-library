@@ -14,7 +14,7 @@ from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
 from .bwl.content import Font, Image, Text
-from .bwl.input import EventCopy, ModalState
+from .bwl.input import ModalEvent, ModalState, Subscription
 from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
 from .bwl.utils import hide_hud, show_hud
@@ -43,16 +43,21 @@ class ExampleOperator(Operator):
                 res_font_roboto,
             )
 
-            # Setup events.
-            self.state = ModalState(context, event)
-            self.event_esc = EventCopy(type='ESC', press=True)
-
             # Setup screen.
             self.screen = Screen()
             self.screen.style.visibility = Visibility.VISIBLE
             self.screen.style.color = Color(0, 0.8)
 
-            # Setup window A. Windows 11 themed
+            def escape_callback(state: ModalState) -> bool:
+                self.should_close = True
+                return True
+
+            self.screen.subscribe(
+                ModalEvent(type='ESC', value='PRESS'),
+                Subscription(escape_callback, reverse=True),
+            )
+
+            # Setup window A. Windows 11 themed.
             window_a = Window(parent=self.screen)
             window_a.style.direction = Direction.VERTICAL
             window_a.style.x = 150
@@ -119,11 +124,11 @@ class ExampleOperator(Operator):
             # Create scroll box widget type.
             class ScrollBox(Widget):
 
-                def event_scroll_up(self, state: ModalState):
+                def on_scroll_up(self, state: ModalState):
                     self.style.scroll = max(0, self.style.scroll - 10)
                     return True
 
-                def event_scroll_dn(self, state: ModalState):
+                def on_scroll_dn(self, state: ModalState):
                     if self.style.direction == Direction.HORIZONTAL:
                         limit = self.layout.content.width - self.layout.inside.width
                     elif self.style.direction == Direction.VERTICAL:
@@ -146,8 +151,14 @@ class ExampleOperator(Operator):
                 scroll_box.style.border_radius = Corners(5)
                 scroll_box.style.border_thickness = 1
 
-                scroll_box.subscribe(EventCopy(type='WHEELUPMOUSE', press=True), scroll_box.event_scroll_up)
-                scroll_box.subscribe(EventCopy(type='WHEELDOWNMOUSE', press=True), scroll_box.event_scroll_dn)
+                scroll_box.subscribe(
+                    ModalEvent(type='WHEELUPMOUSE', value='PRESS'),
+                    Subscription(scroll_box.on_scroll_up),
+                )
+                scroll_box.subscribe(
+                    ModalEvent(type='WHEELDOWNMOUSE', value='PRESS'),
+                    Subscription(scroll_box.on_scroll_dn),
+                )
 
                 # Setup scroll box items.
                 for _ in range(10):
@@ -194,15 +205,8 @@ class ExampleOperator(Operator):
 
     def modal(self, context: Context, event: Event) -> set:
         try:
-            self.state.update(context, event)
-
-            event_copy = EventCopy.from_event(event)
-
-            if event_copy == self.event_esc:
-                self.cleanup(context)
-                return {'FINISHED'}
-
-            handled = self.screen.handle_event(self.state, event_copy)
+            state = ModalState(context, event)
+            handled = self.screen.handle_event(state)
 
             if self.should_close:
                 self.cleanup(context)
