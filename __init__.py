@@ -18,7 +18,7 @@ from .bwl.input import EventCopy, ModalState
 from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
 from .bwl.utils import hide_hud, show_hud
-from .bwl.widgets import Screen, Widget, Window
+from .bwl.widgets import Button, Screen, Widget, Window
 
 
 class ExampleOperator(Operator):
@@ -29,9 +29,7 @@ class ExampleOperator(Operator):
 
     def invoke(self, context: Context, event: Event) -> set:
         try:
-            # TODO: Move to button class.
-            self.exit_pressed = False
-            self.exit_released = False
+            self.should_close = False
 
             # Load resources.
             resources_path = Path(__file__).parent.joinpath('resources')
@@ -54,7 +52,7 @@ class ExampleOperator(Operator):
             self.screen.style.visibility = Visibility.VISIBLE
             self.screen.style.color = Color(0, 0.8)
 
-            # Setup window A.
+            # Setup window A. Windows 11 themed
             window_a = Window(parent=self.screen)
             window_a.style.direction = Direction.VERTICAL
             window_a.style.x = 150
@@ -89,26 +87,24 @@ class ExampleOperator(Operator):
             spacer.style.width = Size.FLEX
 
             # Setup exit button.
-            exit_button = Widget(parent=window_a.header)
+            exit_button = Button(window_a.header)
             exit_button.style.width = 45
             exit_button.style.height = window_a.header.style.height
-            exit_button.style.color = Color(0.769, 0.169, 0.110, 0.5)
+            exit_button.style.color = window_a.header.style.color
             exit_button.style.border_radius = Corners(0, 0, 9, 0)
             exit_button.style.align_x = Align.CENTER
             exit_button.style.align_y = Align.CENTER
 
-            def on_lmb_press_exit_button(state: ModalState):
-                self.exit_pressed = True
-                return True
+            exit_button.style_hover = exit_button.style.copy()
+            exit_button.style_hover.color = Color(0.769, 0.169, 0.110)
 
-            def on_lmb_release_exit_button(state: ModalState):
-                if self.exit_pressed:
-                    self.exit_pressed = False
-                    self.exit_released = exit_button.is_mouse_inside(state)
-                return False
+            exit_button.style_press = exit_button.style.copy()
+            exit_button.style_press.color = Color(0.698, 0.165, 0.114)
 
-            exit_button.subscribe(EventCopy(type='LEFTMOUSE', press=True), on_lmb_press_exit_button, area=True)
-            exit_button.subscribe(EventCopy(type='LEFTMOUSE', press=False), on_lmb_release_exit_button, area=False)
+            def exit_button_callback():
+                self.should_close = True
+
+            exit_button.setup_callback(exit_button_callback)
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
@@ -208,7 +204,7 @@ class ExampleOperator(Operator):
 
             handled = self.screen.handle_event(self.state, event_copy)
 
-            if self.exit_released:
+            if self.should_close:
                 self.cleanup(context)
                 return {'FINISHED'}
 
