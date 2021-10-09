@@ -247,12 +247,15 @@ class Style:
 class TextStyle:
     '''Visual properties of text.'''
 
-    def __init__(self):
-        self.color: Color = Color(1)
+    def __init__(self, color: Color = None, font: Union[Font, None] = None, font_size: int = 14):
+        self.color = color if (color is not None) else Color(1)
 
-        self.font: Union[Font, None] = None
-        self.font_size: int = 14
+        self.font = font
+        self.font_size = font_size
 
     @property
     def font_id(self) -> int:
         return self.font.id if (self.font is not None) else 0
+
+    def copy(self) -> TextStyle:
+        return TextStyle(self.color.copy(), self.font, self.font_size)
