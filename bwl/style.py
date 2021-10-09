@@ -80,6 +80,9 @@ class Sides:
         '''Sum of the top and bottom values.'''
         return self.top + self.bottom
 
+    def copy(self) -> Sides:
+        return Sides(self.top, self.right, self.bottom, self.left)
+
 
 class Corners:
     '''Values used for border radius.'''
@@ -128,6 +131,9 @@ class Corners:
             min(half_size, self.bottom_right),
         )
 
+    def copy(self) -> Corners:
+        return Corners(self.top_left, self.bottom_left, self.top_right, self.bottom_right)
+
 
 class Color:
     '''Color in float values including alpha.'''
@@ -167,34 +173,75 @@ class Color:
     def __iter__(self) -> Iterator[float]:
         return iter((self.red, self.green, self.blue, self.alpha))
 
+    def copy(self) -> Color:
+        return Color(self.red, self.green, self.blue, self.alpha)
+
 
 class Style:
     '''Visual properties of a widget.'''
 
-    def __init__(self):
-        self.display: Display = Display.STANDARD
-        self.visibility: Visibility = Visibility.VISIBLE
+    def __init__(
+        self,
+        display: Display = Display.STANDARD,
+        visibility: Visibility = Visibility.VISIBLE,
+        direction: Direction = Direction.VERTICAL,
+        scroll: float = 0,
+        align_x: Align = Align.START,
+        align_y: Align = Align.START,
+        x: float = 0,
+        y: float = 0,
+        width: Union[Size, float] = Size.AUTO,
+        height: Union[Size, float] = Size.AUTO,
+        margin: Sides = None,
+        padding: Sides = None,
+        color: Color = None,
+        border_color: Color = None,
+        border_radius: Corners = None,
+        border_thickness: float = 0,
+    ):
+        self.display = display
+        self.visibility = visibility
 
-        self.direction: Direction = Direction.VERTICAL
-        self.scroll: float = 0
+        self.direction = direction
+        self.scroll = scroll
 
-        self.align_x: Align = Align.START
-        self.align_y: Align = Align.START
+        self.align_x = align_x
+        self.align_y = align_y
 
-        self.x: float = 0
-        self.y: float = 0
+        self.x = x
+        self.y = y
 
-        self.width: Union[Size, float] = Size.AUTO
-        self.height: Union[Size, float] = Size.AUTO
+        self.width = width
+        self.height = height
 
-        self.margin: Sides = Sides()
-        self.padding: Sides = Sides()
+        self.margin = margin if (margin is not None) else Sides()
+        self.padding = padding if (padding is not None) else Sides()
 
-        self.color: Color = Color(1)
-        self.border_color: Color = Color(0)
+        self.color = color if (color is not None) else Color(1)
+        self.border_color = border_color if (border_color is not None) else Color(0)
 
-        self.border_radius: Corners = Corners()
-        self.border_thickness: float = 0
+        self.border_radius = border_radius if (border_radius is not None) else Corners()
+        self.border_thickness = border_thickness
+
+    def copy(self) -> Style:
+        return Style(
+            self.display,
+            self.visibility,
+            self.direction,
+            self.scroll,
+            self.align_x,
+            self.align_y,
+            self.x,
+            self.y,
+            self.width,
+            self.height,
+            self.margin.copy(),
+            self.padding.copy(),
+            self.color.copy(),
+            self.border_color.copy(),
+            self.border_radius.copy(),
+            self.border_thickness,
+        )
 
 
 class TextStyle:
