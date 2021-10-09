@@ -104,7 +104,7 @@ class ExampleOperator(Operator):
             def exit_button_callback():
                 self.should_close = True
 
-            exit_button.setup_callback(exit_button_callback)
+            exit_button.set_callback(exit_button_callback)
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)

@@ -24,7 +24,7 @@ class Button(Widget):
         self._is_pressed = False
         self._is_hovering = False
 
-    def setup_callback(self, function: Callable):
+    def set_callback(self, function: Callable):
         self._callback = function
 
     def _on_press(self, state: ModalState) -> bool:
