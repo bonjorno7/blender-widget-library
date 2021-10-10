@@ -176,6 +176,9 @@ def compute_height(widget: Widget, height: float = None) -> float:
     # Calculate height per stretching child.
     if widget.style.direction == Direction.VERTICAL:
         widget.layout.content.height = sum(compute_height(child) for child in fixed_children)
+        widget.layout.content.height -= sum(
+            child.layout.margin.height for child in fixed_children if child.style.display == Display.FLOAT
+        )
         flexible_height = widget.layout.inside.height - widget.layout.content.height
         child_height = (flexible_height / len(flex_children)) if flex_children else 0
 
@@ -208,7 +211,7 @@ def compute_x(widget: Widget, x: float = None):
     widget.layout.margin.x = widget.style.x
 
     # Add the position given by our parent.
-    if (widget.style.display != Display.FLOAT) and (x is not None):
+    if x is not None:
         widget.layout.margin.x += x
 
     # Calculate positions for other bounding boxes.
@@ -230,8 +233,11 @@ def compute_x(widget: Widget, x: float = None):
         # Calculate position for children.
         child_x = widget.layout.content.x - widget.style.scroll
         for child in children:
-            compute_x(child, child_x)
-            child_x += child.layout.margin.width
+            if child.style.display == Display.FLOAT:
+                compute_x(child, widget.layout.content.x)
+            else:
+                compute_x(child, child_x)
+                child_x += child.layout.margin.width
 
     # Calculate content position for vertical layout.
     elif widget.style.direction == Direction.VERTICAL:
@@ -255,7 +261,7 @@ def compute_y(widget: Widget, y: float = None):
     widget.layout.margin.y = widget.style.y
 
     # Add the position given by our parent.
-    if (widget.style.display != Display.FLOAT) and (y is not None):
+    if y is not None:
         widget.layout.margin.y += y
 
     # Calculate positions for other bounding boxes.
@@ -277,8 +283,11 @@ def compute_y(widget: Widget, y: float = None):
         # Calculate position for children.
         child_y = widget.layout.content.y - widget.style.scroll
         for child in children:
-            compute_y(child, child_y)
-            child_y += child.layout.margin.height
+            if child.style.display == Display.FLOAT:
+                compute_y(child, widget.layout.content.y)
+            else:
+                compute_y(child, child_y)
+                child_y += child.layout.margin.height
 
     # Calculate content position for horizontal layout.
     elif widget.style.direction == Direction.HORIZONTAL:
