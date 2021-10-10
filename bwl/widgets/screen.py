@@ -33,7 +33,7 @@ class Screen(Widget):
     def _on_click(self, state: ModalState) -> bool:
         # Mouse clicks bring the clicked widget to the front.
         for child in reversed(self.children):
-            if child.style.display != Display.NONE:
+            if child.style.display == Display.FLOAT:
                 if child.is_mouse_inside(state):
                     self.children.remove(child)
                     self.children.append(child)
