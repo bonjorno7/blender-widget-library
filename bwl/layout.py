@@ -138,7 +138,7 @@ def compute_width(widget: Widget, width: float = None) -> float:
 
     # Floating children can take the full width.
     for child in float_children:
-        compute_width(child, widget.layout.margin.width)
+        compute_width(child, widget.layout.inside.width)
 
     # Return our width, so our parent can use it to calculate its content width.
     return widget.layout.margin.width
