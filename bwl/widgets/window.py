@@ -6,8 +6,6 @@ from ..input import ModalEvent, ModalState, Subscription
 from ..style import Direction, Display, Size
 from . import Widget, Resizable
 
-# TODO: Implement resize.
-
 
 class Window(Resizable):
     '''Window which can be moved and resized.'''
@@ -27,6 +25,11 @@ class Window(Resizable):
         self.frame.style.direction = Direction.VERTICAL
         self.frame.style.width = Size.FLEX
         self.frame.style.height = Size.FLEX
+
+        self.children.remove(self.header)
+        self.children.insert(0, self.header)
+        self.children.remove(self.frame)
+        self.children.insert(1, self.frame)
 
         self.header.subscribe(
             ModalEvent(type='LEFTMOUSE', value='PRESS'),

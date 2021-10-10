@@ -40,16 +40,15 @@ class ResizeHandle(Widget):
 
         self.subscribe(
             ModalEvent(type='LEFTMOUSE', value='PRESS'),
-            Subscription(self._on_lmb_press, area=True, reverse=True),
+            Subscription(self._on_lmb_press, area=True),
         )
         self.subscribe(
             ModalEvent(type='LEFTMOUSE', value='RELEASE'),
-            Subscription(self._on_lmb_release, area=False, reverse=True),
+            Subscription(self._on_lmb_release, area=False),
         )
         self.subscribe(
             ModalEvent(type='MOUSEMOVE'),
             Subscription(self._on_mouse_move, area=False),
-            # Subscription(self._on_mouse_move, area=False, reverse=True),
         )
 
         self._cursor = 'MOVE_X' if (axis == Axis.X) else 'MOVE_Y' if (axis == Axis.Y) else 'SCROLL_XY'
