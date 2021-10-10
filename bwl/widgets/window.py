@@ -4,12 +4,12 @@ from typing import Union
 
 from ..input import ModalEvent, ModalState, Subscription
 from ..style import Direction, Display, Size
-from . import Widget
+from . import Widget, Resizable
 
 # TODO: Implement resize.
 
 
-class Window(Widget):
+class Window(Resizable):
     '''Window which can be moved and resized.'''
 
     def __init__(self, parent: Union[Widget, None] = None):
