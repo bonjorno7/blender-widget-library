@@ -136,7 +136,10 @@ def compute_width(widget: Widget, width: float = None) -> float:
         widget.layout.margin.width = widget.layout.border.width + widget.style.margin.width
 
     # Return our width, so our parent can use it to calculate its content width.
-    return widget.layout.margin.width
+    if widget.style.display == Display.FLOAT:
+        return 0
+    else:
+        return widget.layout.margin.width
 
 
 def compute_height(widget: Widget, height: float = None) -> float:
@@ -176,9 +179,6 @@ def compute_height(widget: Widget, height: float = None) -> float:
     # Calculate height per stretching child.
     if widget.style.direction == Direction.VERTICAL:
         widget.layout.content.height = sum(compute_height(child) for child in fixed_children)
-        widget.layout.content.height -= sum(
-            child.layout.margin.height for child in fixed_children if child.style.display == Display.FLOAT
-        )
         flexible_height = widget.layout.inside.height - widget.layout.content.height
         child_height = (flexible_height / len(flex_children)) if flex_children else 0
 
@@ -199,7 +199,10 @@ def compute_height(widget: Widget, height: float = None) -> float:
         compute_height(child, child_height)
 
     # Return our height, so our parent can use it to calculate its content height.
-    return widget.layout.margin.height
+    if widget.style.display == Display.FLOAT:
+        return 0
+    else:
+        return widget.layout.margin.height
 
 
 def compute_x(widget: Widget, x: float = None):
@@ -234,7 +237,7 @@ def compute_x(widget: Widget, x: float = None):
         child_x = widget.layout.content.x - widget.style.scroll
         for child in children:
             if child.style.display == Display.FLOAT:
-                compute_x(child, widget.layout.content.x)
+                compute_x(child, widget.layout.inside.x)
             else:
                 compute_x(child, child_x)
                 child_x += child.layout.margin.width
@@ -242,14 +245,17 @@ def compute_x(widget: Widget, x: float = None):
     # Calculate content position for vertical layout.
     elif widget.style.direction == Direction.VERTICAL:
         for child in children:
-            if widget.style.align_x == Align.START:
+            if child.style.display == Display.FLOAT:
                 compute_x(child, widget.layout.inside.x)
             else:
-                offset = widget.layout.inside.width - child.layout.margin.width
-                if widget.style.align_x == Align.CENTER:
-                    compute_x(child, widget.layout.inside.x + offset / 2)
-                elif widget.style.align_x == Align.END:
-                    compute_x(child, widget.layout.inside.x + offset)
+                if widget.style.align_x == Align.START:
+                    compute_x(child, widget.layout.inside.x)
+                else:
+                    offset = widget.layout.inside.width - child.layout.margin.width
+                    if widget.style.align_x == Align.CENTER:
+                        compute_x(child, widget.layout.inside.x + offset / 2)
+                    elif widget.style.align_x == Align.END:
+                        compute_x(child, widget.layout.inside.x + offset)
 
 
 def compute_y(widget: Widget, y: float = None):
@@ -284,7 +290,7 @@ def compute_y(widget: Widget, y: float = None):
         child_y = widget.layout.content.y - widget.style.scroll
         for child in children:
             if child.style.display == Display.FLOAT:
-                compute_y(child, widget.layout.content.y)
+                compute_y(child, widget.layout.inside.y)
             else:
                 compute_y(child, child_y)
                 child_y += child.layout.margin.height
@@ -292,14 +298,17 @@ def compute_y(widget: Widget, y: float = None):
     # Calculate content position for horizontal layout.
     elif widget.style.direction == Direction.HORIZONTAL:
         for child in children:
-            if widget.style.align_y == Align.START:
+            if child.style.display == Display.FLOAT:
                 compute_y(child, widget.layout.inside.y)
             else:
-                offset = widget.layout.inside.height - child.layout.margin.height
-                if widget.style.align_y == Align.CENTER:
-                    compute_y(child, widget.layout.inside.y + offset / 2)
-                elif widget.style.align_y == Align.END:
-                    compute_y(child, widget.layout.inside.y + offset)
+                if widget.style.align_y == Align.START:
+                    compute_y(child, widget.layout.inside.y)
+                else:
+                    offset = widget.layout.inside.height - child.layout.margin.height
+                    if widget.style.align_y == Align.CENTER:
+                        compute_y(child, widget.layout.inside.y + offset / 2)
+                    elif widget.style.align_y == Align.END:
+                        compute_y(child, widget.layout.inside.y + offset)
 
 
 def compute_scissor(widget: Widget, area: Area = None):
