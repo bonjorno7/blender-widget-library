@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING
 
 import bgl
 import blf
-from bpy.types import Context
 from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
 
 from .content import Image
+from .input import ModalState
 from .layout import Area
-from .style import Color
+from .style import Color, Display, Visibility
 
 if TYPE_CHECKING:
     from .widgets import Widget
@@ -23,7 +23,7 @@ class Shaders:
     image: GPUShader = None
 
 
-def compile_shaders(recompile: bool = False) -> None:
+def compile_shaders(recompile: bool = False):
     '''Compile the UI shader.'''
     folder = Path(__file__).parent.joinpath('shaders')
 
@@ -38,82 +38,97 @@ def compile_shaders(recompile: bool = False) -> None:
         Shaders.image = GPUShader(vertex_source, fragment_source)
 
 
-def render_widget(widget: Widget, context: Context) -> None:
+def render_widget(widget: Widget, state: ModalState):
     '''Render a widget on the screen.'''
-    x = widget.layout.padding.x
-    y = widget.layout.padding.y
-    width = widget.layout.padding.width
-    height = widget.layout.padding.height
+    # If display is none, don't render this widget or its children.
+    if widget.style.display == Display.NONE:
+        return
 
-    # Offset Y to work with OpenGL.
-    y = context.area.height - y - height
+    # Only render this widget if it's set to visible.
+    if widget.style.visibility != Visibility.HIDDEN:
+        x = widget.layout.padding.x
+        y = widget.layout.padding.y
+        width = widget.layout.padding.width
+        height = widget.layout.padding.height
 
-    color = widget.style.color
-    border_color = widget.style.border_color
-    border_radius = widget.style.border_radius
-    border_thickness = widget.style.border_thickness
+        # Offset Y to work with OpenGL.
+        y = state.area.height - y - height
 
-    # Clamp border radius to border area.
-    border_width = widget.layout.border.width
-    border_height = widget.layout.border.height
-    border_radius = border_radius.clamped(min(border_width, border_height))
+        color = widget.style.color
+        border_color = widget.style.border_color
+        border_radius = widget.style.border_radius
+        border_thickness = widget.style.border_thickness
 
-    vertices = (
-        (x - border_thickness - 2, y - border_thickness - 2),
-        (x + width + border_thickness + 2, y - border_thickness - 2),
-        (x + width + border_thickness + 2, y + height + border_thickness + 2),
-        (x - border_thickness - 2, y + height + border_thickness + 2),
-    )
+        # Clamp border radius to border area.
+        border_width = widget.layout.border.width
+        border_height = widget.layout.border.height
+        border_radius = border_radius.clamped(min(border_width, border_height))
 
-    indices = (
-        (0, 1, 2),
-        (2, 3, 0),
-    )
-
-    if widget.layout.scissor != None:
-        scissor: Area = round(widget.layout.scissor)
-
-        bgl.glScissor(scissor.x, context.area.height - scissor.y - scissor.height, scissor.width, scissor.height)
-        bgl.glEnable(bgl.GL_SCISSOR_TEST)
-
-    bgl.glEnable(bgl.GL_BLEND)
-
-    if widget.image is None:
-        render_standard(
-            x=x,
-            y=y,
-            width=width,
-            height=height,
-            color=color,
-            border_color=border_color,
-            border_radius=border_radius,
-            border_thickness=border_thickness,
-            vertices=vertices,
-            indices=indices,
+        vertices = (
+            (x - border_thickness - 2, y - border_thickness - 2),
+            (x + width + border_thickness + 2, y - border_thickness - 2),
+            (x + width + border_thickness + 2, y + height + border_thickness + 2),
+            (x - border_thickness - 2, y + height + border_thickness + 2),
         )
 
+        indices = (
+            (0, 1, 2),
+            (2, 3, 0),
+        )
+
+        if widget.layout.scissor != None:
+            scissor: Area = round(widget.layout.scissor)
+
+            bgl.glScissor(scissor.x, state.area.height - scissor.y - scissor.height, scissor.width, scissor.height)
+            bgl.glEnable(bgl.GL_SCISSOR_TEST)
+
+        bgl.glEnable(bgl.GL_BLEND)
+
+        if widget.image is None:
+            render_standard(
+                x=x,
+                y=y,
+                width=width,
+                height=height,
+                color=color,
+                border_color=border_color,
+                border_radius=border_radius,
+                border_thickness=border_thickness,
+                vertices=vertices,
+                indices=indices,
+            )
+
+        else:
+            render_image(
+                image=widget.image,
+                x=x,
+                y=y,
+                width=width,
+                height=height,
+                color=color,
+                border_color=border_color,
+                border_radius=border_radius,
+                border_thickness=border_thickness,
+                vertices=vertices,
+                indices=indices,
+            )
+
+        if widget.text is not None:
+            render_text(widget, state)
+
+        bgl.glDisable(bgl.GL_BLEND)
+
+        if widget.layout.scissor != None:
+            bgl.glDisable(bgl.GL_SCISSOR_TEST)
+
+    # Render child widgets.
+    if widget.style.display == Display.SCROLL:
+        for child in widget.children:
+            if child.layout.scissor.contains(child.layout.border, True):
+                render_widget(child, state)
     else:
-        render_image(
-            image=widget.image,
-            x=x,
-            y=y,
-            width=width,
-            height=height,
-            color=color,
-            border_color=border_color,
-            border_radius=border_radius,
-            border_thickness=border_thickness,
-            vertices=vertices,
-            indices=indices,
-        )
-
-    if widget.text is not None:
-        render_text(widget, context)
-
-    bgl.glDisable(bgl.GL_BLEND)
-
-    if widget.layout.scissor != None:
-        bgl.glDisable(bgl.GL_SCISSOR_TEST)
+        for child in widget.children:
+            render_widget(child, state)
 
 
 def render_standard(
@@ -125,8 +140,8 @@ def render_standard(
     border_color: Color,
     border_radius: float,
     border_thickness: float,
-    vertices,
-    indices,
+    vertices: tuple,
+    indices: tuple,
 ):
     if Shaders.standard is None:
         raise Exception('Shader must be compiled first.')
@@ -153,8 +168,8 @@ def render_image(
     border_color: Color,
     border_radius: float,
     border_thickness: float,
-    vertices,
-    indices,
+    vertices: tuple,
+    indices: tuple,
 ):
     if Shaders.image is None:
         raise Exception('Shader must be compiled first.')
@@ -184,13 +199,13 @@ def render_image(
     image.gl_free()
 
 
-def render_text(widget: Widget, context: Context):
+def render_text(widget: Widget, state: ModalState):
     x = widget.layout.text.x
     y = widget.layout.text.y
     height = widget.layout.text.height
 
     # Offset Y to work with OpenGL.
-    y = context.area.height - y - height
+    y = state.area.height - y - height
 
     # Get the font ID once because it's a getter.
     id = widget.text.style.font_id

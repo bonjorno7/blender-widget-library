@@ -29,6 +29,7 @@ class ExampleOperator(Operator):
 
     def invoke(self, context: Context, event: Event) -> set:
         try:
+            self.state = ModalState(context, event)
             self.should_close = False
 
             # Load resources.
@@ -193,7 +194,7 @@ class ExampleOperator(Operator):
             window_b.frame.style.color = Color(0.129, 0.145, 0.169)
 
             # Finally compute the layout.
-            self.screen.compute_layout(context)
+            self.screen.compute_layout(self.state)
             compile_shaders()
 
             self.setup(context)
@@ -205,15 +206,15 @@ class ExampleOperator(Operator):
 
     def modal(self, context: Context, event: Event) -> set:
         try:
-            state = ModalState(context, event)
-            handled = self.screen.handle_event(state)
+            self.state = ModalState(context, event)
+            handled = self.screen.handle_event(self.state)
 
             if self.should_close:
                 self.cleanup(context)
                 return {'FINISHED'}
 
             if handled:
-                self.screen.compute_layout(context)
+                self.screen.compute_layout(self.state)
                 context.area.tag_redraw()
                 return {'RUNNING_MODAL'}
 
@@ -223,13 +224,13 @@ class ExampleOperator(Operator):
             self.cleanup(context)
             raise
 
-    def draw_callback(self, context: Context):
-        self.screen.render(context)
+    def draw_callback(self):
+        self.screen.render(self.state)
 
     def setup(self, context: Context) -> bool:
         hide_hud(context)
 
-        self.draw_handler = SpaceView3D.draw_handler_add(self.draw_callback, (context,), 'WINDOW', 'POST_PIXEL')
+        self.draw_handler = SpaceView3D.draw_handler_add(self.draw_callback, (), 'WINDOW', 'POST_PIXEL')
         context.area.tag_redraw()
 
         if not WindowManager.modal_handler_add(self):

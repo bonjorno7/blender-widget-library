@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from typing import Dict, List, Union
 
-from bpy.types import Context
-
 from ..content import Image, Text
 from ..input import ModalEvent, ModalState, Subscription
 from ..layout import Layout, compute_layout
 from ..render import render_widget
-from ..style import Display, Style, Visibility
+from ..style import Display, Style
 
 
 class Widget:
@@ -70,24 +68,10 @@ class Widget:
         # The event was not handled by this widget or its children.
         return False
 
-    def compute_layout(self, context: Context):
+    def compute_layout(self, state: ModalState):
         '''Compute layout of this widget and its children.'''
-        if self.style.display != Display.NONE:
-            compute_layout(self)
+        compute_layout(self, state)
 
-    def render(self, context: Context):
+    def render(self, state: ModalState):
         '''Render this widget and its children.'''
-        if self.style.display == Display.NONE:
-            return
-
-        if self.style.visibility != Visibility.HIDDEN:
-            render_widget(self, context)
-
-        if self.style.display == Display.SCROLL:
-            for child in self.children:
-                if child.layout.scissor.contains(child.layout.border, True):
-                    child.render(context)
-
-        else:
-            for child in self.children:
-                child.render(context)
+        render_widget(self, state)
