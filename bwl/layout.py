@@ -261,8 +261,9 @@ def compute_x(widget: Widget, state: ModalState, x: float = None):
                 elif widget.style.align_x == Align.END:
                     compute_x(child, state, widget.layout.inside.x + offset)
 
-    # Floating children are placed relative to our inside position.
+    # Floating children are constrained to our inside bounds.
     for child in float_children:
+        child.style.x = max(0, min(child.style.x, widget.layout.inside.width - child.layout.margin.width))
         compute_x(child, state, widget.layout.inside.x)
 
 
@@ -313,8 +314,9 @@ def compute_y(widget: Widget, state: ModalState, y: float = None):
                 elif widget.style.align_y == Align.END:
                     compute_y(child, state, widget.layout.inside.y + offset)
 
-    # Floating children are placed relative to our inside position.
+    # Floating children are constrained to our inside bounds.
     for child in float_children:
+        child.style.y = max(0, min(child.style.y, widget.layout.inside.height - child.layout.margin.height))
         compute_y(child, state, widget.layout.inside.y)
 
 

@@ -47,6 +47,7 @@ class ExampleOperator(Operator):
             # Setup screen.
             self.screen = Screen()
             self.screen.style.visibility = Visibility.VISIBLE
+            self.screen.style.padding = Sides(20)
             self.screen.style.color = Color(0, 0.8)
 
             def escape_callback(state: ModalState) -> bool:
@@ -65,7 +66,6 @@ class ExampleOperator(Operator):
             window_a.style.y = 150
             window_a.style.width = 800
             window_a.style.height = 600
-            window_a.style.margin = Sides(10)
             window_a.style.color = Color(0.15)
             window_a.style.border_color = window_a.style.color
             window_a.style.border_radius = Corners(10)

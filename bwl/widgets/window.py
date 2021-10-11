@@ -62,12 +62,6 @@ class Window(Widget):
         return False
 
     def _on_mouse_move(self, state: ModalState) -> bool:
-        self.style.x = min(
-            state.area.width - self.layout.margin.width,
-            max(0, state.mouse_x - self._mouse_offset_x),
-        )
-        self.style.y = min(
-            state.area.height - self.layout.margin.height,
-            max(0, state.mouse_y - self._mouse_offset_y),
-        )
+        self.style.x = state.mouse_x - self._mouse_offset_x
+        self.style.y = state.mouse_y - self._mouse_offset_y
         return True
