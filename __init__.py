@@ -9,6 +9,7 @@ bl_info = {
 }
 
 from pathlib import Path
+from typing import Callable
 
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
@@ -18,7 +19,7 @@ from .bwl.input import ModalEvent, ModalState, Subscription
 from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
 from .bwl.utils import hide_hud, show_hud
-from .bwl.widgets import Button, Widget
+from .bwl.widgets import Widget
 
 
 class ExampleOperator(Operator):
@@ -99,24 +100,44 @@ class ExampleOperator(Operator):
             spacer.style.width = Size.FLEX
 
             # Setup exit button.
-            exit_button = Button(header)
+            class Button(Widget):
+
+                def __init__(self, parent: Widget, callback: Callable):
+                    super().__init__(parent)
+                    self.callback = callback
+
+                    self.subscribe(
+                        ModalEvent(type='LEFTMOUSE', value='PRESS'),
+                        Subscription(self.on_press, area=True),
+                    )
+                    self.subscribe(
+                        ModalEvent(type='LEFTMOUSE', value='RELEASE'),
+                        Subscription(self.on_release, area=False),
+                    )
+
+                    self.pressed = False
+
+                def on_press(self, state: ModalState) -> bool:
+                    self.pressed = True
+                    return True
+
+                def on_release(self, state: ModalState) -> bool:
+                    if self.pressed:
+                        self.pressed = False
+                        self.callback(state)
+
+                    return False
+
+            def exit_button_callback(state: ModalState):
+                self.should_close = True
+
+            exit_button = Button(header, exit_button_callback)
             exit_button.style.width = 45
             exit_button.style.height = header.style.height
-            exit_button.style.color = header.style.color
+            exit_button.style.color = Color(0.698, 0.165, 0.114)
             exit_button.style.border_radius = Corners(0, 0, 9, 0)
             exit_button.style.align_x = Align.CENTER
             exit_button.style.align_y = Align.CENTER
-
-            exit_button.style_hover = exit_button.style.copy()
-            exit_button.style_hover.color = Color(0.769, 0.169, 0.110)
-
-            exit_button.style_press = exit_button.style.copy()
-            exit_button.style_press.color = Color(0.698, 0.165, 0.114)
-
-            def exit_button_callback():
-                self.should_close = True
-
-            exit_button.set_callback(exit_button_callback)
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
