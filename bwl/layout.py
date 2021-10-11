@@ -220,10 +220,6 @@ def compute_x(widget: Widget, state: ModalState, x: float = None):
     flex_children = [child for child in children if child.style.width == Size.FLEX]
     float_children = [child for child in widget.children if child.style.display == Display.FLOAT]
 
-    # Keep floating widgets that have no parent inside the 3D view.
-    if (widget.style.display == Display.FLOAT) and (x is None):
-        widget.style.x = max(0, min(widget.style.x, state.area.width - widget.layout.margin.width))
-
     # Start at the position defined in style.
     widget.layout.margin.x = widget.style.x
 
@@ -265,9 +261,8 @@ def compute_x(widget: Widget, state: ModalState, x: float = None):
                 elif widget.style.align_x == Align.END:
                     compute_x(child, state, widget.layout.inside.x + offset)
 
-    # Floating children are constrained to our inside bounds.
+    # Floating children are placed relative to our inside position.
     for child in float_children:
-        child.style.x = max(0, min(child.style.x, widget.layout.inside.width - child.layout.margin.width))
         compute_x(child, state, widget.layout.inside.x)
 
 
@@ -276,10 +271,6 @@ def compute_y(widget: Widget, state: ModalState, y: float = None):
     children = [child for child in widget.children if child.style.display not in (Display.NONE, Display.FLOAT)]
     flex_children = [child for child in children if child.style.height == Size.FLEX]
     float_children = [child for child in widget.children if child.style.display == Display.FLOAT]
-
-    # Keep floating widgets that have no parent inside the 3D view.
-    if (widget.style.display == Display.FLOAT) and (y is None):
-        widget.style.y = max(0, min(widget.style.y, state.area.height - widget.layout.margin.height))
 
     # Start at the position defined in style.
     widget.layout.margin.y = widget.style.y
@@ -322,10 +313,9 @@ def compute_y(widget: Widget, state: ModalState, y: float = None):
                 elif widget.style.align_y == Align.END:
                     compute_y(child, state, widget.layout.inside.y + offset)
 
-    # Floating children are constrained to our inside bounds.
+    # Floating children are placed relative to our inside position.
     for child in float_children:
-        child.style.y = max(0, min(child.style.y, widget.layout.inside.height - child.layout.margin.height))
-        compute_y(child, state, widget.layout.inside.y)
+        compute_x(child, state, widget.layout.inside.y)
 
 
 def compute_scissor(widget: Widget, state: ModalState, area: Area = None):
