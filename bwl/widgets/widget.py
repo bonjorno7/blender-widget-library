@@ -16,7 +16,9 @@ class Widget:
         if parent is not None:
             parent.children.append(self)
 
+        self.parent = parent
         self.children: List[Widget] = []
+
         self.subscriptions: Dict[ModalEvent, Subscription] = {}
 
         self.layout = Layout()
