@@ -206,12 +206,10 @@ class ExampleOperator(Operator):
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            if handled:
-                self.root.compute_layout(self.state)
-                context.area.tag_redraw()
-                return {'RUNNING_MODAL'}
+            self.root.compute_layout(self.state)
+            context.area.tag_redraw()
 
-            return {'PASS_THROUGH'}
+            return {'RUNNING_MODAL'} if handled else {'PASS_THROUGH'}
 
         except:
             self.cleanup(context)
