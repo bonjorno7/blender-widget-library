@@ -22,7 +22,7 @@ class ModalState:
 class ModalEvent:
     '''Event which widgets can subscribe to.'''
 
-    def __init__(self, type: str, value: str = None, shift: bool = None, ctrl: bool = None, alt: bool = None):
+    def __init__(self, type: str = None, value: str = None, shift: bool = None, ctrl: bool = None, alt: bool = None):
         self.type = type
         self.value = value
         self.shift = shift
