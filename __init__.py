@@ -30,7 +30,7 @@ class ExampleOperator(Operator):
 
     def invoke(self, context: Context, event: Event) -> set:
         try:
-            self.state = ModalState(context, event)
+            self.state = ModalState(self, context, event)
             self.should_close = False
 
             # Load resources.
@@ -220,7 +220,7 @@ class ExampleOperator(Operator):
 
     def modal(self, context: Context, event: Event) -> set:
         try:
-            self.state = ModalState(context, event)
+            self.state = ModalState(self, context, event)
             handled = self.root.handle_event(self.state)
 
             if self.should_close:
