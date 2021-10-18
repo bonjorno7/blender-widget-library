@@ -106,30 +106,9 @@ class ExampleOperator(Operator):
             # Setup exit button.
             class Button(Widget):
 
-                # def mouse_enter_event(self, state: ModalState):
-                #     if 'LEFTMOUSE' in self._pressed:
-                #         self.style_current = self.style_press
-                #     else:
-                #         self.style_current = self.style_hover
-
-                # def mouse_leave_event(self, state: ModalState):
-                #     if 'LEFTMOUSE' in self._pressed:
-                #         self.style_current = self.style_press
-                #     else:
-                #         self.style_current = self.style
-
-                # def mouse_press_event(self, state: ModalState):
-                #     if state.event.type == 'LEFTMOUSE':
-                #         self.style_current = self.style_press
-
                 def on_mouse_release(self, state: ModalState):
-                    if state.event.type == 'LEFTMOUSE':
-                        # if self._hovered:
-                        #     self.style_current = self.style_hover
-                        # else:
-                        #     self.style_current = self.style
-
-                        if self._hovered:
+                    if self._hover:
+                        if state.event.type == 'LEFTMOUSE':
                             self.execute(state)
 
                 def execute(self, state: ModalState):
@@ -146,7 +125,7 @@ class ExampleOperator(Operator):
                 align_y=Align.CENTER,
             )
             exit_button.style_hover = Style(background_color=Color(0.769, 0.169, 0.110))
-            exit_button.style_press = Style(background_color=Color(0.698, 0.165, 0.114))
+            exit_button.style_active = Style(background_color=Color(0.698, 0.165, 0.114))
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
@@ -177,6 +156,18 @@ class ExampleOperator(Operator):
                             limit = self._layout.content.height - self._layout.inside.height
                         self.style.scroll = min(limit, self.style.scroll + 10)
 
+            class ScrollBoxItem(Widget):
+
+                def on_mouse_release(self, state: ModalState):
+                    if self._hover:
+                        if state.event.type == 'LEFTMOUSE':
+                            if state.event.ctrl:
+                                self._select = not self._select
+                            else:
+                                for sibling in self._parent._children:
+                                    sibling._select = False
+                                self._select = True
+
             # Setup scroll boxes.
             for direction in Direction:
                 scroll_box = ScrollBox(parent=frame)
@@ -199,8 +190,8 @@ class ExampleOperator(Operator):
                 )
 
                 # Setup scroll box items.
-                for _ in range(10):
-                    element = Widget(parent=scroll_box)
+                for number in range(1, 11):
+                    element = ScrollBoxItem(parent=scroll_box)
                     element.style = Style(
                         align_x=Align.CENTER,
                         align_y=Align.CENTER,
@@ -213,8 +204,9 @@ class ExampleOperator(Operator):
                         border_thickness=1,
                         font=res_font_roboto,
                     )
+                    element.style_select = Style(background_color=Color(0.25, 0.45, 0.65))
                     element.style_hover = Style(foreground_color=Color(1.0))
-                    element.text = 'I am inside a scroll box'
+                    element.text = f'Item number {number}'
 
             # Finally compute the layout.
             self.root.compute(self.state)

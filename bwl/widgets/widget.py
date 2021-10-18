@@ -30,13 +30,16 @@ class Widget:
 
         self._style = DEFAULT_STYLE
         self._layout = Layout()
-
-        self._hovered = False
         self._pressed = set()
 
+        self._select = False
+        self._hover = False
+        self._active = False
+
         self.style: Style = None
+        self.style_select: Style = None
         self.style_hover: Style = None
-        self.style_press: Style = None
+        self.style_active: Style = None
 
         self.image: Union[Image, None] = None
         self.text: Union[str, None] = None
@@ -67,30 +70,30 @@ class Widget:
     def on_event(self, state: ModalState) -> bool:
         '''Called when this widget receives an event.'''
         if state.event.type == 'MOUSEMOVE':
-            hovered = self.under_mouse(state)
+            hover = self.under_mouse(state)
 
             if not is_abstract(self.on_mouse_move):
                 self.on_mouse_move(state)
 
             if not is_abstract(self.on_mouse_enter):
-                if not self._hovered and hovered:
+                if not self._hover and hover:
                     self.on_mouse_enter(state)
 
             if not is_abstract(self.on_mouse_leave):
-                if self._hovered and not hovered:
+                if self._hover and not hover:
                     self.on_mouse_leave(state)
 
-            self._hovered = hovered
+            self._hover = hover
 
         elif state.event.type in SCROLL:
             if not is_abstract(self.on_mouse_scroll):
-                if self.under_mouse(state):
+                if self._hover:
                     self.on_mouse_scroll(state)
                     return True
 
         elif state.event.type in MOUSE_BUTTONS:
             if state.event.value == 'PRESS':
-                if self.under_mouse(state):
+                if self._hover:
                     self._pressed.add(state.event.type)
 
                     if not is_abstract(self.on_mouse_press):
@@ -104,6 +107,8 @@ class Widget:
                     if not is_abstract(self.on_mouse_release):
                         self.on_mouse_release(state)
                         return True
+
+            self._active = bool(self._pressed)
 
         elif state.event.type in KEYS:
             # TODO: Implement focusing.

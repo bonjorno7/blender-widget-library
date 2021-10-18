@@ -286,10 +286,12 @@ def compute_style(widget: Widget, state: ModalState):
 
     if widget.style is not None:
         widget._style += widget.style
-    if widget._hovered and (widget.style_hover is not None):
+    if widget._select and (widget.style_select is not None):
+        widget._style += widget.style_select
+    if widget._hover and (widget.style_hover is not None):
         widget._style += widget.style_hover
-    if widget._pressed and (widget.style_press is not None):
-        widget._style += widget.style_press
+    if widget._active and (widget.style_active is not None):
+        widget._style += widget.style_active
 
     for child in widget._children:
         compute_style(child, state)
