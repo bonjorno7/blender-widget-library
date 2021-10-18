@@ -90,6 +90,7 @@ class ExampleOperator(Operator):
                 foreground_color=Color(0.75),
                 background_color=Color(0.2),
                 border_radius=Corners(9, 0),
+                font=res_font_roboto,
             )
             header.text = 'Blender Widget Library'
 
@@ -210,6 +211,7 @@ class ExampleOperator(Operator):
                         background_color=Color(0.3),
                         border_color=Color(0.15),
                         border_thickness=1,
+                        font=res_font_roboto,
                     )
                     element.style_hover = Style(foreground_color=Color(1.0))
                     element.text = 'I am inside a scroll box'
