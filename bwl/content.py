@@ -5,8 +5,6 @@ from pathlib import Path
 import blf
 import bpy
 
-from .style import TextStyle
-
 
 class Image:
 
@@ -33,21 +31,18 @@ class Image:
         self.data.gl_free()
 
     def remove(self):
-        bpy.data.images.remove(self.data)
+        if self.data is not None:
+            bpy.data.images.remove(self.data)
+            self.data = None
 
 
 class Font:
 
-    def __init__(self, path: str):
+    def __init__(self, path: Path = None):
         self.path = path
-        self.id = blf.load(str(path))
+        self.id = blf.load(str(path)) if (self.path is not None) else 0
 
     def remove(self):
-        blf.unload(self.path)
-
-
-class Text:
-
-    def __init__(self, data: str, style: TextStyle = None):
-        self.data = data
-        self.style: TextStyle = style if (style is not None) else TextStyle()
+        if self.id > 0:
+            blf.unload(str(self.path))
+            self.id = 0

@@ -1,12 +1,21 @@
 from __future__ import annotations
 
-from typing import Dict, List, Union
+from typing import List, Union
 
-from ..content import Image, Text
-from ..input import ModalEvent, ModalState, Subscription
+from ..content import Image
+from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState
 from ..layout import Layout, compute_layout
-from ..render import render_widget
-from ..style import Display, Style
+from ..render import render
+from ..style import DEFAULT_STYLE, Display, Style, compute_style
+
+
+def abstract(func):
+    func.abstract = True
+    return func
+
+
+def is_abstract(func) -> bool:
+    return getattr(func, 'abstract', False)
 
 
 class Widget:
@@ -14,66 +23,154 @@ class Widget:
 
     def __init__(self, parent: Union[Widget, None] = None):
         if parent is not None:
-            parent.children.append(self)
+            parent._children.append(self)
 
-        self.parent = parent
-        self.children: List[Widget] = []
+        self._parent = parent
+        self._children: List[Widget] = []
 
-        self.subscriptions: Dict[ModalEvent, Subscription] = {}
+        self._style = DEFAULT_STYLE
+        self._layout = Layout()
 
-        self.layout = Layout()
-        self.style = Style()
+        self._hovered = False
+        self._pressed = set()
+
+        self.style: Style = None
+        self.style_hover: Style = None
+        self.style_press: Style = None
 
         self.image: Union[Image, None] = None
-        self.text: Union[Text, None] = None
+        self.text: Union[str, None] = None
 
-    def subscribe(self, event: ModalEvent, subscription: Subscription):
-        '''Add an event to this widget.'''
-        self.subscriptions[event] = subscription
+        if not is_abstract(self.on_init):
+            self.on_init(parent)
 
-    def unsubscribe(self, event: ModalEvent):
-        '''Remove an event from this widget.'''
-        if event in self.subscriptions:
-            self.subscriptions.pop(event)
-
-    def is_mouse_inside(self, state: ModalState) -> bool:
-        '''Check whether the cursor is inside the border of this widget.'''
-        return self.layout.border.contains(state.mouse_x, state.mouse_y)
-
-    def handle_event(self, state: ModalState) -> bool:
-        '''Handle event for this widget and its children, return whether it was handled.'''
-        if self.style.display == Display.NONE:
-            return False
-
-        # Get lists of subscriptions to be handled before and after children.
-        subscriptions_matched = [s for (e, s) in self.subscriptions.items() if e.compare(state.event)]
-        subscriptions_reverse = [s for s in subscriptions_matched if s.reverse]
-        subscriptions_regular = [s for s in subscriptions_matched if not s.reverse]
-
-        # Check area if necessary, return if the subscription handled the event.
-        def handle_subscription(s: Subscription) -> bool:
-            return (not s.area or self.is_mouse_inside(state)) and s.callback(state)
-
-        # Call all reverse subscriptions, return if any of them handled the event.
-        if any(list(map(handle_subscription, subscriptions_reverse))):
-            return True
-
-        # Send the event to each child, return early if one handled it.
-        for child in reversed(self.children):
-            if child.handle_event(state):
-                return True
-
-        # Call all regular subscriptions, return if any of them handled the event.
-        if any(list(map(handle_subscription, subscriptions_regular))):
-            return True
-
-        # The event was not handled by this widget or its children.
-        return False
-
-    def compute_layout(self, state: ModalState):
-        '''Compute layout of this widget and its children.'''
+    def compute(self, state: ModalState):
+        '''Compute style and layout of this widget and its children.'''
+        compute_style(self, state)
         compute_layout(self, state)
 
     def render(self, state: ModalState):
         '''Render this widget and its children.'''
-        render_widget(self, state)
+        render(self, state)
+
+    def handle(self, state: ModalState) -> bool:
+        '''Handle event for this widget and its children, return whether it was handled.'''
+        if self._style.display == Display.NONE:
+            return False
+
+        for child in reversed(self._children):
+            if child.handle(state):
+                return True
+
+        return self.on_event(state)
+
+    def on_event(self, state: ModalState) -> bool:
+        '''Called when this widget receives an event.'''
+        if state.event.type == 'MOUSEMOVE':
+            hovered = self.under_mouse(state)
+
+            if not is_abstract(self.on_mouse_move):
+                self.on_mouse_move(state)
+
+            if not is_abstract(self.on_mouse_enter):
+                if not self._hovered and hovered:
+                    self.on_mouse_enter(state)
+
+            if not is_abstract(self.on_mouse_leave):
+                if self._hovered and not hovered:
+                    self.on_mouse_leave(state)
+
+            self._hovered = hovered
+
+        elif state.event.type in SCROLL:
+            if not is_abstract(self.on_mouse_scroll):
+                if self.under_mouse(state):
+                    self.on_mouse_scroll(state)
+                    return True
+
+        elif state.event.type in MOUSE_BUTTONS:
+            if state.event.value == 'PRESS':
+                if self.under_mouse(state):
+                    self._pressed.add(state.event.type)
+
+                    if not is_abstract(self.on_mouse_press):
+                        self.on_mouse_press(state)
+                        return True
+
+            elif state.event.value == 'RELEASE':
+                if state.event.type in self._pressed:
+                    self._pressed.remove(state.event.type)
+
+                    if not is_abstract(self.on_mouse_release):
+                        self.on_mouse_release(state)
+                        return True
+
+        elif state.event.type in KEYS:
+            # TODO: Implement focusing.
+            if state.event.value == 'PRESS':
+                if not is_abstract(self.on_key_press):
+                    self.on_key_press(state)
+                    return True
+
+            elif state.event.value == 'RELEASE':
+                if not is_abstract(self.on_key_release):
+                    self.on_key_release(state)
+                    return True
+
+        else:
+            if not is_abstract(self.on_misc):
+                self.on_misc(state)
+                return True
+
+        return False
+
+    def under_mouse(self, state: ModalState) -> bool:
+        '''Check whether the cursor is inside the border of this widget.'''
+        if self._layout.scissor is not None:
+            if not self._layout.scissor.contains(state.mouse_x, state.mouse_y):
+                return False
+
+        if not self._layout.border.contains(state.mouse_x, state.mouse_y):
+            return False
+
+        return True
+
+    @abstract
+    def on_init(self, parent: Union[Widget, None]):
+        ...
+
+    @abstract
+    def on_mouse_move(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_mouse_enter(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_mouse_leave(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_mouse_scroll(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_mouse_press(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_mouse_release(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_key_press(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_key_release(self, state: ModalState):
+        ...
+
+    @abstract
+    def on_misc(self, state: ModalState):
+        ...

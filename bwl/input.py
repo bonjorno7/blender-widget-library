@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Callable
-
 from bpy.types import Context, Event, Operator
 
 from .layout import Area
@@ -20,40 +18,25 @@ class ModalState:
         self.mouse_y = context.area.height - event.mouse_region_y
 
 
-class ModalEvent:
-    '''Event which widgets can subscribe to.'''
+SCROLL = {
+    'WHEELUPMOUSE',
+    'WHEELDOWNMOUSE',
+}
 
-    def __init__(self, type: str = None, value: str = None, shift: bool = None, ctrl: bool = None, alt: bool = None):
-        self.type = type
-        self.value = value
-        self.shift = shift
-        self.ctrl = ctrl
-        self.alt = alt
+MOUSE_BUTTONS = {
+    'LEFTMOUSE',
+    'RIGHTMOUSE',
+    'MIDDLEMOUSE',
+    'BUTTON4MOUSE',
+    'BUTTON5MOUSE',
+    'BUTTON6MOUSE',
+    'BUTTON7MOUSE',
+}
 
-    # We need both __hash__ and __eq__ to use this class as dictionary key.
-    def __hash__(self) -> int:
-        return hash((self.type, self.value, self.shift, self.ctrl, self.alt))
-
-    def __eq__(self, other: ModalEvent) -> bool:
-        return hash(self) == hash(other)
-
-    def compare(self, event: Event) -> bool:
-        '''Compare this ModalEvent to a Blender Event.'''
-        return all(
-            (a is None) or (a == b) for (a, b) in (
-                (self.type, event.type),
-                (self.value, event.value),
-                (self.shift, event.shift),
-                (self.ctrl, event.ctrl),
-                (self.alt, event.alt),
-            )
-        )
-
-
-class Subscription:
-    '''Event subscription for a widget.'''
-
-    def __init__(self, callback: Callable[[ModalState], bool], area: bool = True, reverse: bool = False):
-        self.callback = callback
-        self.area = area
-        self.reverse = reverse
+# TODO: Add all the keys.
+KEYS = {
+    'A',
+    'B',
+    'C',
+    'ESC',
+}

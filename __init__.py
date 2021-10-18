@@ -9,15 +9,14 @@ bl_info = {
 }
 
 from pathlib import Path
-from typing import Callable
 
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
-from .bwl.content import Font, Image, Text
-from .bwl.input import ModalEvent, ModalState, Subscription
+from .bwl.content import Font, Image
+from .bwl.input import ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Visibility
+from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets import Widget
 
@@ -46,169 +45,177 @@ class ExampleOperator(Operator):
             )
 
             # Setup root widget.
-            self.root = Widget()
-            self.root.style.visibility = Visibility.HIDDEN
-            self.root.style.width = Size.FLEX
-            self.root.style.height = Size.FLEX
-            self.root.style.align_x = Align.CENTER
-            self.root.style.align_y = Align.CENTER
+            class Root(Widget):
 
-            def escape_callback(state: ModalState) -> bool:
-                self.should_close = True
-                return True
+                def on_key_press(self, state: ModalState):
+                    if (state.event.type == 'ESC') and (state.event.value == 'PRESS'):
+                        operator: ExampleOperator = state.operator
+                        operator.should_close = True
 
-            self.root.subscribe(
-                ModalEvent(type='ESC', value='PRESS'),
-                Subscription(escape_callback, reverse=True),
+            self.root = Root()
+            self.root.style = Style(
+                visibility=Visibility.HIDDEN,
+                width=Size.FLEX,
+                height=Size.FLEX,
+                align_x=Align.CENTER,
+                align_y=Align.CENTER,
             )
 
-            # Setup window A. Windows 11 themed.
-            window = Widget(parent=self.root)
-            window.style.direction = Direction.VERTICAL
-            window.style.width = 800
-            window.style.height = 600
-            window.style.color = Color(0.15)
-            window.style.border_color = window.style.color
-            window.style.border_radius = Corners(10)
-            window.style.border_thickness = 1
+            # Setup window. Windows 11 themed.
+            class Window(Widget):
 
-            # Consume all events where the cursor is on the window.
-            window.subscribe(ModalEvent(), Subscription(lambda state: True, area=True))
+                def on_event(self, state: ModalState) -> bool:
+                    # Consume all events when the cursor is inside the window.
+                    return self.under_mouse(state)
+
+            window = Window(parent=self.root)
+            window.style = Style(
+                direction=Direction.VERTICAL,
+                width=800,
+                height=600,
+                background_color=Color(0.15),
+                border_color=Color(0.15),
+                border_radius=Corners(10),
+                border_thickness=1,
+            )
 
             # Setup title bar.
             header = Widget(parent=window)
-            header.style.direction = Direction.HORIZONTAL
-            header.style.width = Size.FLEX
-            header.style.height = 32
-            header.style.align_x = Align.CENTER
-            header.style.align_y = Align.CENTER
-            header.style.color = Color(0.2)
-            header.style.border_radius = Corners(9, 0)
-            header.text = Text('Blender Widget Library')
-            header.text.style.color = Color(0.8)
+            header.style = Style(
+                direction=Direction.HORIZONTAL,
+                width=Size.FLEX,
+                height=32,
+                align_x=Align.CENTER,
+                align_y=Align.CENTER,
+                foreground_color=Color(0.75),
+                background_color=Color(0.2),
+                border_radius=Corners(9, 0),
+            )
+            header.text = 'Blender Widget Library'
 
             # Setup window icon.
             image_blender = Widget(parent=header)
-            image_blender.style.width = Size.IMAGE
-            image_blender.style.height = Size.IMAGE
-            image_blender.style.margin = Sides(8)
+            image_blender.style = Style(width=Size.IMAGE, height=Size.IMAGE, margin=Sides(8))
             image_blender.image = res_image_blender
 
             # Title bar spacer.
             spacer = Widget(parent=header)
-            spacer.style.visibility = Visibility.HIDDEN
-            spacer.style.width = Size.FLEX
+            spacer.style = Style(visibility=Visibility.HIDDEN, width=Size.FLEX)
 
             # Setup exit button.
             class Button(Widget):
 
-                def __init__(self, parent: Widget, callback: Callable):
-                    super().__init__(parent)
-                    self.callback = callback
+                # def mouse_enter_event(self, state: ModalState):
+                #     if 'LEFTMOUSE' in self._pressed:
+                #         self.style_current = self.style_press
+                #     else:
+                #         self.style_current = self.style_hover
 
-                    self.subscribe(
-                        ModalEvent(type='LEFTMOUSE', value='PRESS'),
-                        Subscription(self.on_press, area=True),
-                    )
-                    self.subscribe(
-                        ModalEvent(type='LEFTMOUSE', value='RELEASE'),
-                        Subscription(self.on_release, area=False),
-                    )
+                # def mouse_leave_event(self, state: ModalState):
+                #     if 'LEFTMOUSE' in self._pressed:
+                #         self.style_current = self.style_press
+                #     else:
+                #         self.style_current = self.style
 
-                    self.pressed = False
+                # def mouse_press_event(self, state: ModalState):
+                #     if state.event.type == 'LEFTMOUSE':
+                #         self.style_current = self.style_press
 
-                def on_press(self, state: ModalState) -> bool:
-                    self.pressed = True
-                    return True
+                def on_mouse_release(self, state: ModalState):
+                    if state.event.type == 'LEFTMOUSE':
+                        # if self._hovered:
+                        #     self.style_current = self.style_hover
+                        # else:
+                        #     self.style_current = self.style
 
-                def on_release(self, state: ModalState) -> bool:
-                    if self.pressed:
-                        self.pressed = False
-                        self.callback(state)
+                        if self._hovered:
+                            self.execute(state)
 
-                    return False
+                def execute(self, state: ModalState):
+                    operator: ExampleOperator = state.operator
+                    operator.should_close = True
 
-            def exit_button_callback(state: ModalState):
-                self.should_close = True
-
-            exit_button = Button(header, exit_button_callback)
-            exit_button.style.width = 45
-            exit_button.style.height = header.style.height
-            exit_button.style.color = Color(0.698, 0.165, 0.114)
-            exit_button.style.border_radius = Corners(0, 0, 9, 0)
-            exit_button.style.align_x = Align.CENTER
-            exit_button.style.align_y = Align.CENTER
+            exit_button = Button(parent=header)
+            exit_button.style = Style(
+                background_color=Color(0, 0),
+                width=45,
+                height=header.style.height,
+                border_radius=Corners(0, 0, 9, 0),
+                align_x=Align.CENTER,
+                align_y=Align.CENTER,
+            )
+            exit_button.style_hover = Style(background_color=Color(0.769, 0.169, 0.110))
+            exit_button.style_press = Style(background_color=Color(0.698, 0.165, 0.114))
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
-            cross_icon.style.width = Size.IMAGE
-            cross_icon.style.height = Size.IMAGE
+            cross_icon.style = Style(width=Size.IMAGE, height=Size.IMAGE)
             cross_icon.image = res_image_cross
 
             # Setup content frame.
             frame = Widget(parent=window)
-            frame.style.direction = Direction.VERTICAL
-            frame.style.width = Size.FLEX
-            frame.style.height = Size.FLEX
-            frame.style.color = Color(0.2)
-            frame.style.color = Color(0.25)
-            frame.style.padding = Sides(5)
-            frame.style.border_radius = Corners(0, 9)
+            frame.style = Style(
+                direction=Direction.VERTICAL,
+                width=Size.FLEX,
+                height=Size.FLEX,
+                background_color=Color(0.25),
+                padding=Sides(5),
+                border_radius=Corners(0, 9),
+            )
 
             # Create scroll box widget type.
             class ScrollBox(Widget):
 
-                def on_scroll_up(self, state: ModalState):
-                    self.style.scroll = max(0, self.style.scroll - 10)
-                    return True
-
-                def on_scroll_dn(self, state: ModalState):
-                    if self.style.direction == Direction.HORIZONTAL:
-                        limit = self.layout.content.width - self.layout.inside.width
-                    elif self.style.direction == Direction.VERTICAL:
-                        limit = self.layout.content.height - self.layout.inside.height
-
-                    self.style.scroll = min(limit, self.style.scroll + 10)
-                    return True
+                def on_mouse_scroll(self, state: ModalState):
+                    if state.event.type == 'WHEELUPMOUSE':
+                        self.style.scroll = max(0, self.style.scroll - 10)
+                    else:
+                        if self.style.direction == Direction.HORIZONTAL:
+                            limit = self._layout.content.width - self._layout.inside.width
+                        elif self.style.direction == Direction.VERTICAL:
+                            limit = self._layout.content.height - self._layout.inside.height
+                        self.style.scroll = min(limit, self.style.scroll + 10)
 
             # Setup scroll boxes.
             for direction in Direction:
                 scroll_box = ScrollBox(parent=frame)
-                scroll_box.style.display = Display.SCROLL
-                scroll_box.style.direction = direction
-                scroll_box.style.width = Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO
-                scroll_box.style.height = Size.FLEX if direction == Direction.VERTICAL else Size.AUTO
-                scroll_box.style.margin = Sides(20, 20, 5 if direction == Direction.HORIZONTAL else 20)
-                scroll_box.style.padding = Sides(4)
-                scroll_box.style.color = Color(0.35)
-                scroll_box.style.border_color = Color(0.15)
-                scroll_box.style.border_radius = Corners(5)
-                scroll_box.style.border_thickness = 1
-
-                scroll_box.subscribe(
-                    ModalEvent(type='WHEELUPMOUSE', value='PRESS'),
-                    Subscription(scroll_box.on_scroll_up),
+                scroll_box.style = Style(
+                    display=Display.SCROLL,
+                    scroll=0,
+                    direction=direction,
+                    width=Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO,
+                    height=Size.FLEX if direction == Direction.VERTICAL else Size.AUTO,
+                    margin=Sides(20, 20, 5 if direction == Direction.HORIZONTAL else 20),
+                    padding=Sides(4),
+                    background_color=Color(0.35),
+                    border_color=Color(0.15),
+                    border_radius=Corners(5),
+                    border_thickness=1,
                 )
-                scroll_box.subscribe(
-                    ModalEvent(type='WHEELDOWNMOUSE', value='PRESS'),
-                    Subscription(scroll_box.on_scroll_dn),
+                scroll_box.style_hover = Style(
+                    padding=Sides(3),
+                    border_thickness=2,
                 )
 
                 # Setup scroll box items.
                 for _ in range(10):
                     element = Widget(parent=scroll_box)
-                    element.style.align_x = Align.CENTER
-                    element.style.align_y = Align.CENTER
-                    element.style.width = 200
-                    element.style.height = 70
-                    element.style.margin = Sides(2)
-                    element.style.color = Color(0.3)
-                    element.style.border_color = Color(0.15)
-                    element.style.border_thickness = 1
-                    element.text = Text('I am inside a scroll box')
+                    element.style = Style(
+                        align_x=Align.CENTER,
+                        align_y=Align.CENTER,
+                        width=200,
+                        height=70,
+                        margin=Sides(2),
+                        foreground_color=Color(0.85),
+                        background_color=Color(0.3),
+                        border_color=Color(0.15),
+                        border_thickness=1,
+                    )
+                    element.style_hover = Style(foreground_color=Color(1.0))
+                    element.text = 'I am inside a scroll box'
 
             # Finally compute the layout.
-            self.root.compute_layout(self.state)
+            self.root.compute(self.state)
             compile_shaders()
 
             self.setup(context)
@@ -220,14 +227,19 @@ class ExampleOperator(Operator):
 
     def modal(self, context: Context, event: Event) -> set:
         try:
+            # This happens on workspace switch. Can't restore HUD unfortunately.
+            if context.area is None:
+                self.cleanup(context)
+                return {'FINISHED'}
+
             self.state = ModalState(self, context, event)
-            handled = self.root.handle_event(self.state)
+            handled = self.root.handle(self.state)
 
             if self.should_close:
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            self.root.compute_layout(self.state)
+            self.root.compute(self.state)
             context.area.tag_redraw()
 
             return {'RUNNING_MODAL'} if handled else {'PASS_THROUGH'}

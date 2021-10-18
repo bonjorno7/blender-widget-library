@@ -3,8 +3,11 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Iterator, Union, overload
 
+from .content import Font
+
 if TYPE_CHECKING:
-    from .content import Font
+    from .input import ModalState
+    from .widgets.widget import Widget
 
 
 class Display(Enum):
@@ -182,22 +185,25 @@ class Style:
 
     def __init__(
         self,
-        display: Display = Display.STANDARD,
-        visibility: Visibility = Visibility.VISIBLE,
-        direction: Direction = Direction.VERTICAL,
-        scroll: float = 0,
-        align_x: Align = Align.START,
-        align_y: Align = Align.START,
-        x: float = 0,
-        y: float = 0,
-        width: Union[Size, float] = Size.AUTO,
-        height: Union[Size, float] = Size.AUTO,
+        display: Display = None,
+        visibility: Visibility = None,
+        direction: Direction = None,
+        scroll: float = None,
+        align_x: Align = None,
+        align_y: Align = None,
+        x: float = None,
+        y: float = None,
+        width: Union[Size, float] = None,
+        height: Union[Size, float] = None,
         margin: Sides = None,
         padding: Sides = None,
-        color: Color = None,
+        foreground_color: Color = None,
+        background_color: Color = None,
         border_color: Color = None,
         border_radius: Corners = None,
-        border_thickness: float = 0,
+        border_thickness: float = None,
+        font: Font = None,
+        font_size: int = None,
     ):
         self.display = display
         self.visibility = visibility
@@ -214,48 +220,76 @@ class Style:
         self.width = width
         self.height = height
 
-        self.margin = margin if (margin is not None) else Sides()
-        self.padding = padding if (padding is not None) else Sides()
+        self.margin = margin
+        self.padding = padding
 
-        self.color = color if (color is not None) else Color(1)
-        self.border_color = border_color if (border_color is not None) else Color(0)
+        self.foreground_color = foreground_color
+        self.background_color = background_color
+        self.border_color = border_color
 
-        self.border_radius = border_radius if (border_radius is not None) else Corners()
+        self.border_radius = border_radius
         self.border_thickness = border_thickness
-
-    def copy(self) -> Style:
-        return Style(
-            self.display,
-            self.visibility,
-            self.direction,
-            self.scroll,
-            self.align_x,
-            self.align_y,
-            self.x,
-            self.y,
-            self.width,
-            self.height,
-            self.margin.copy(),
-            self.padding.copy(),
-            self.color.copy(),
-            self.border_color.copy(),
-            self.border_radius.copy(),
-            self.border_thickness,
-        )
-
-
-class TextStyle:
-    '''Visual properties of text.'''
-
-    def __init__(self, color: Color = None, font: Union[Font, None] = None, font_size: int = 14):
-        self.color = color if (color is not None) else Color(1)
 
         self.font = font
         self.font_size = font_size
 
-    @property
-    def font_id(self) -> int:
-        return self.font.id if (self.font is not None) else 0
+    def __add__(self, other: Style) -> Style:
+        return Style(
+            display=other.display if (other.display is not None) else self.display,
+            visibility=other.visibility if (other.visibility is not None) else self.visibility,
+            direction=other.direction if (other.direction is not None) else self.direction,
+            scroll=other.scroll if (other.scroll is not None) else self.scroll,
+            align_x=other.align_x if (other.align_x is not None) else self.align_x,
+            align_y=other.align_y if (other.align_y is not None) else self.align_y,
+            x=other.x if (other.x is not None) else self.x,
+            y=other.y if (other.y is not None) else self.y,
+            width=other.width if (other.width is not None) else self.width,
+            height=other.height if (other.height is not None) else self.height,
+            margin=other.margin if (other.margin is not None) else self.margin,
+            padding=other.padding if (other.padding is not None) else self.padding,
+            foreground_color=other.foreground_color if (other.foreground_color is not None) else self.foreground_color,
+            background_color=other.background_color if (other.background_color is not None) else self.background_color,
+            border_color=other.border_color if (other.border_color is not None) else self.border_color,
+            border_radius=other.border_radius if (other.border_radius is not None) else self.border_radius,
+            border_thickness=other.border_thickness if (other.border_thickness is not None) else self.border_thickness,
+            font=other.font if (other.font is not None) else self.font,
+            font_size=other.font_size if (other.font_size is not None) else self.font_size,
+        )
 
-    def copy(self) -> TextStyle:
-        return TextStyle(self.color.copy(), self.font, self.font_size)
+
+DEFAULT_STYLE = Style(
+    display=Display.STANDARD,
+    visibility=Visibility.VISIBLE,
+    direction=Direction.VERTICAL,
+    scroll=0,
+    align_x=Align.START,
+    align_y=Align.START,
+    x=0,
+    y=0,
+    width=Size.AUTO,
+    height=Size.AUTO,
+    margin=Sides(0),
+    padding=Sides(0),
+    foreground_color=Color(1),
+    background_color=Color(1),
+    border_color=Color(0),
+    border_radius=Corners(0),
+    border_thickness=0,
+    font=Font(None),
+    font_size=14,
+)
+
+
+def compute_style(widget: Widget, state: ModalState):
+    '''Compute style for the given widget and its children.'''
+    widget._style = DEFAULT_STYLE
+
+    if widget.style is not None:
+        widget._style += widget.style
+    if widget._hovered and (widget.style_hover is not None):
+        widget._style += widget.style_hover
+    if widget._pressed and (widget.style_press is not None):
+        widget._style += widget.style_press
+
+    for child in widget._children:
+        compute_style(child, state)
