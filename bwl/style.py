@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Iterator, Union, overload
+from typing import TYPE_CHECKING, Iterator, Set, Union, overload
 
 from .content import Font
 
 if TYPE_CHECKING:
     from .input import ModalState
     from .widgets.widget import Widget
+
+
+class Criterion(Enum):
+    '''When to use the style.'''
+    HOVER = auto()
+    ACTIVE = auto()
+    SELECT = auto()
+    FOCUS = auto()
 
 
 class Display(Enum):
@@ -185,6 +193,7 @@ class Style:
 
     def __init__(
         self,
+        criteria: Set[Criterion] = None,
         display: Display = None,
         visibility: Visibility = None,
         direction: Direction = None,
@@ -205,6 +214,7 @@ class Style:
         font: Font = None,
         font_size: int = None,
     ):
+        self.criteria = criteria
         self.display = display
         self.visibility = visibility
 
@@ -235,6 +245,7 @@ class Style:
 
     def __add__(self, other: Style) -> Style:
         return Style(
+            criteria=other.criteria if (other.criteria is not None) else self.criteria,
             display=other.display if (other.display is not None) else self.display,
             visibility=other.visibility if (other.visibility is not None) else self.visibility,
             direction=other.direction if (other.direction is not None) else self.direction,
@@ -258,6 +269,7 @@ class Style:
 
 
 DEFAULT_STYLE = Style(
+    criteria=set(),
     display=Display.STANDARD,
     visibility=Visibility.VISIBLE,
     direction=Direction.VERTICAL,
@@ -284,14 +296,18 @@ def compute_style(widget: Widget, state: ModalState):
     '''Compute style for the given widget and its children.'''
     widget._style = DEFAULT_STYLE
 
-    if widget.style is not None:
-        widget._style += widget.style
-    if widget._select and (widget.style_select is not None):
-        widget._style += widget.style_select
-    if widget._hover and (widget.style_hover is not None):
-        widget._style += widget.style_hover
-    if widget._active and (widget.style_active is not None):
-        widget._style += widget.style_active
+    for style in widget.styles:
+        if style.criteria:
+            if (Criterion.HOVER in style.criteria) and (not widget._hover):
+                continue
+            if (Criterion.ACTIVE in style.criteria) and (not widget._active):
+                continue
+            if (Criterion.SELECT in style.criteria) and (not widget._select):
+                continue
+            if (Criterion.FOCUS in style.criteria) and (not widget._focus):
+                continue
+
+        widget._style += style
 
     for child in widget._children:
         compute_style(child, state)

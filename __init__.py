@@ -16,7 +16,7 @@ from bpy.utils import register_class, unregister_class
 from .bwl.content import Font, Image
 from .bwl.input import ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Style, Visibility
+from .bwl.style import Align, Color, Corners, Criterion, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets import Widget
 
@@ -53,13 +53,15 @@ class ExampleOperator(Operator):
                         operator.should_close = True
 
             self.root = Root()
-            self.root.style = Style(
-                visibility=Visibility.HIDDEN,
-                width=Size.FLEX,
-                height=Size.FLEX,
-                align_x=Align.CENTER,
-                align_y=Align.CENTER,
-            )
+            self.root.styles = [
+                Style(
+                    visibility=Visibility.HIDDEN,
+                    width=Size.FLEX,
+                    height=Size.FLEX,
+                    align_x=Align.CENTER,
+                    align_y=Align.CENTER,
+                ),
+            ]
 
             # Setup window. Windows 11 themed.
             class Window(Widget):
@@ -69,39 +71,43 @@ class ExampleOperator(Operator):
                     return self.under_mouse(state)
 
             window = Window(parent=self.root)
-            window.style = Style(
-                direction=Direction.VERTICAL,
-                width=800,
-                height=600,
-                background_color=Color(0.15),
-                border_color=Color(0.15),
-                border_radius=Corners(10),
-                border_thickness=1,
-            )
+            window.styles = [
+                Style(
+                    direction=Direction.VERTICAL,
+                    width=800,
+                    height=600,
+                    background_color=Color(0.15),
+                    border_color=Color(0.15),
+                    border_radius=Corners(10),
+                    border_thickness=1,
+                ),
+            ]
 
             # Setup title bar.
             header = Widget(parent=window)
-            header.style = Style(
-                direction=Direction.HORIZONTAL,
-                width=Size.FLEX,
-                height=32,
-                align_x=Align.CENTER,
-                align_y=Align.CENTER,
-                foreground_color=Color(0.75),
-                background_color=Color(0.2),
-                border_radius=Corners(9, 0),
-                font=res_font_roboto,
-            )
+            header.styles = [
+                Style(
+                    direction=Direction.HORIZONTAL,
+                    width=Size.FLEX,
+                    height=32,
+                    align_x=Align.CENTER,
+                    align_y=Align.CENTER,
+                    foreground_color=Color(0.75),
+                    background_color=Color(0.2),
+                    border_radius=Corners(9, 0),
+                    font=res_font_roboto,
+                ),
+            ]
             header.text = 'Blender Widget Library'
 
             # Setup window icon.
             image_blender = Widget(parent=header)
-            image_blender.style = Style(width=Size.IMAGE, height=Size.IMAGE, margin=Sides(8))
+            image_blender.styles = [Style(width=Size.IMAGE, height=Size.IMAGE, margin=Sides(8))]
             image_blender.image = res_image_blender
 
             # Title bar spacer.
             spacer = Widget(parent=header)
-            spacer.style = Style(visibility=Visibility.HIDDEN, width=Size.FLEX)
+            spacer.styles = [Style(visibility=Visibility.HIDDEN, width=Size.FLEX)]
 
             # Setup exit button.
             class Button(Widget):
@@ -116,45 +122,55 @@ class ExampleOperator(Operator):
                     operator.should_close = True
 
             exit_button = Button(parent=header)
-            exit_button.style = Style(
-                background_color=Color(0, 0),
-                width=45,
-                height=header.style.height,
-                border_radius=Corners(0, 0, 9, 0),
-                align_x=Align.CENTER,
-                align_y=Align.CENTER,
-            )
-            exit_button.style_hover = Style(background_color=Color(0.769, 0.169, 0.110))
-            exit_button.style_active = Style(background_color=Color(0.698, 0.165, 0.114))
+            exit_button.styles = [
+                Style(
+                    background_color=Color(0, 0),
+                    width=45,
+                    height=header.styles[0].height,
+                    border_radius=Corners(0, 0, 9, 0),
+                    align_x=Align.CENTER,
+                    align_y=Align.CENTER,
+                ),
+                Style(
+                    criteria={Criterion.HOVER},
+                    background_color=Color(0.769, 0.169, 0.110),
+                ),
+                Style(
+                    criteria={Criterion.ACTIVE},
+                    background_color=Color(0.698, 0.165, 0.114),
+                ),
+            ]
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
-            cross_icon.style = Style(width=Size.IMAGE, height=Size.IMAGE)
+            cross_icon.styles = [Style(width=Size.IMAGE, height=Size.IMAGE)]
             cross_icon.image = res_image_cross
 
             # Setup content frame.
             frame = Widget(parent=window)
-            frame.style = Style(
-                direction=Direction.VERTICAL,
-                width=Size.FLEX,
-                height=Size.FLEX,
-                background_color=Color(0.25),
-                padding=Sides(5),
-                border_radius=Corners(0, 9),
-            )
+            frame.styles = [
+                Style(
+                    direction=Direction.VERTICAL,
+                    width=Size.FLEX,
+                    height=Size.FLEX,
+                    background_color=Color(0.25),
+                    padding=Sides(5),
+                    border_radius=Corners(0, 9),
+                ),
+            ]
 
             # Create scroll box widget type.
             class ScrollBox(Widget):
 
                 def on_mouse_scroll(self, state: ModalState):
                     if state.event.type == 'WHEELUPMOUSE':
-                        self.style.scroll = max(0, self.style.scroll - 10)
+                        self.styles[0].scroll = max(0, self.styles[0].scroll - 10)
                     else:
-                        if self.style.direction == Direction.HORIZONTAL:
+                        if self.styles[0].direction == Direction.HORIZONTAL:
                             limit = self._layout.content.width - self._layout.inside.width
-                        elif self.style.direction == Direction.VERTICAL:
+                        elif self.styles[0].direction == Direction.VERTICAL:
                             limit = self._layout.content.height - self._layout.inside.height
-                        self.style.scroll = min(limit, self.style.scroll + 10)
+                        self.styles[0].scroll = min(limit, self.styles[0].scroll + 10)
 
             class ScrollBoxItem(Widget):
 
@@ -171,41 +187,57 @@ class ExampleOperator(Operator):
             # Setup scroll boxes.
             for direction in Direction:
                 scroll_box = ScrollBox(parent=frame)
-                scroll_box.style = Style(
-                    display=Display.SCROLL,
-                    scroll=0,
-                    direction=direction,
-                    width=Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO,
-                    height=Size.FLEX if direction == Direction.VERTICAL else Size.AUTO,
-                    margin=Sides(20, 20, 5 if direction == Direction.HORIZONTAL else 20),
-                    padding=Sides(4),
-                    background_color=Color(0.35),
-                    border_color=Color(0.15),
-                    border_radius=Corners(5),
-                    border_thickness=1,
-                )
-                scroll_box.style_hover = Style(
-                    padding=Sides(3),
-                    border_thickness=2,
-                )
+                scroll_box.styles = [
+                    Style(
+                        display=Display.SCROLL,
+                        scroll=0,
+                        direction=direction,
+                        width=Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO,
+                        height=Size.FLEX if direction == Direction.VERTICAL else Size.AUTO,
+                        margin=Sides(20, 20, 5 if direction == Direction.HORIZONTAL else 20),
+                        padding=Sides(4),
+                        background_color=Color(0.35),
+                        border_color=Color(0.15),
+                        border_radius=Corners(5),
+                        border_thickness=1,
+                    ),
+                    Style(
+                        criteria={Criterion.HOVER},
+                        padding=Sides(3),
+                        border_thickness=2,
+                    ),
+                ]
 
                 # Setup scroll box items.
                 for number in range(1, 11):
                     element = ScrollBoxItem(parent=scroll_box)
-                    element.style = Style(
-                        align_x=Align.CENTER,
-                        align_y=Align.CENTER,
-                        width=200,
-                        height=70,
-                        margin=Sides(2),
-                        foreground_color=Color(0.85),
-                        background_color=Color(0.3),
-                        border_color=Color(0.15),
-                        border_thickness=1,
-                        font=res_font_roboto,
-                    )
-                    element.style_select = Style(background_color=Color(0.25, 0.45, 0.65))
-                    element.style_hover = Style(foreground_color=Color(1.0))
+                    element.styles = [
+                        Style(
+                            align_x=Align.CENTER,
+                            align_y=Align.CENTER,
+                            width=200,
+                            height=70,
+                            margin=Sides(2),
+                            foreground_color=Color(0.85),
+                            background_color=Color(0.3),
+                            border_color=Color(0.15),
+                            border_thickness=1,
+                            font=res_font_roboto,
+                        ),
+                        Style(
+                            criteria={Criterion.HOVER},
+                            foreground_color=Color(1.0),
+                            background_color=Color(0.4),
+                        ),
+                        Style(
+                            criteria={Criterion.SELECT},
+                            background_color=Color(0.25, 0.45, 0.65),
+                        ),
+                        Style(
+                            criteria={Criterion.SELECT, Criterion.HOVER},
+                            background_color=Color(0.35, 0.55, 0.75),
+                        ),
+                    ]
                     element.text = f'Item number {number}'
 
             # Finally compute the layout.

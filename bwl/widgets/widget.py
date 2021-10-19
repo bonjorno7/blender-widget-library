@@ -32,15 +32,12 @@ class Widget:
         self._layout = Layout()
         self._pressed = set()
 
-        self._select = False
         self._hover = False
         self._active = False
+        self._select = False
+        self._focus = False
 
-        self.style: Style = None
-        self.style_select: Style = None
-        self.style_hover: Style = None
-        self.style_active: Style = None
-
+        self.styles: List[Style] = []
         self.image: Union[Image, None] = None
         self.text: Union[str, None] = None
 
@@ -111,16 +108,16 @@ class Widget:
             self._active = bool(self._pressed)
 
         elif state.event.type in KEYS:
-            # TODO: Implement focusing.
-            if state.event.value == 'PRESS':
-                if not is_abstract(self.on_key_press):
-                    self.on_key_press(state)
-                    return True
+            if self._focus:
+                if state.event.value == 'PRESS':
+                    if not is_abstract(self.on_key_press):
+                        self.on_key_press(state)
+                        return True
 
-            elif state.event.value == 'RELEASE':
-                if not is_abstract(self.on_key_release):
-                    self.on_key_release(state)
-                    return True
+                elif state.event.value == 'RELEASE':
+                    if not is_abstract(self.on_key_release):
+                        self.on_key_release(state)
+                        return True
 
         else:
             if not is_abstract(self.on_misc):
