@@ -267,6 +267,30 @@ class Style:
             font_size=other.font_size if (other.font_size is not None) else self.font_size,
         )
 
+    def copy(self) -> Style:
+        return Style(
+            criteria=self.criteria,
+            display=self.display,
+            visibility=self.visibility,
+            direction=self.direction,
+            scroll=self.scroll,
+            align_x=self.align_x,
+            align_y=self.align_y,
+            x=self.x,
+            y=self.y,
+            width=self.width,
+            height=self.height,
+            margin=self.margin,
+            padding=self.padding,
+            foreground_color=self.foreground_color,
+            background_color=self.background_color,
+            border_color=self.border_color,
+            border_radius=self.border_radius,
+            border_thickness=self.border_thickness,
+            font=self.font,
+            font_size=self.font_size,
+        )
+
 
 DEFAULT_STYLE = Style(
     criteria=set(),
