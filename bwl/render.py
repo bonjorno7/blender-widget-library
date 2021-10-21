@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .widgets import Widget
 
 
-class Shaders:
+class _Shaders:
     '''Stored shaders.'''
     standard: GPUShader = None
     image: GPUShader = None
@@ -27,18 +27,18 @@ def compile_shaders(recompile: bool = False):
     '''Compile the UI shader.'''
     folder = Path(__file__).parent.joinpath('shaders')
 
-    if recompile or Shaders.standard is None:
+    if recompile or _Shaders.standard is None:
         vertex_source = folder.joinpath('standard_vs.glsl').read_text()
         fragment_source = folder.joinpath('standard_fs.glsl').read_text()
-        Shaders.standard = GPUShader(vertex_source, fragment_source)
+        _Shaders.standard = GPUShader(vertex_source, fragment_source)
 
-    if recompile or Shaders.image is None:
+    if recompile or _Shaders.image is None:
         vertex_source = folder.joinpath('image_vs.glsl').read_text()
         fragment_source = folder.joinpath('image_fs.glsl').read_text()
-        Shaders.image = GPUShader(vertex_source, fragment_source)
+        _Shaders.image = GPUShader(vertex_source, fragment_source)
 
 
-def render(widget: Widget, state: ModalState):
+def render_widget(widget: Widget, state: ModalState):
     '''Render a widget on the screen.'''
     # If display is none, don't render this widget or its children.
     if widget._style.display == Display.NONE:
@@ -85,7 +85,7 @@ def render(widget: Widget, state: ModalState):
         bgl.glEnable(bgl.GL_BLEND)
 
         if widget.image is None:
-            render_standard(
+            _render_standard(
                 x=x,
                 y=y,
                 width=width,
@@ -99,7 +99,7 @@ def render(widget: Widget, state: ModalState):
             )
 
         else:
-            render_image(
+            _render_image(
                 image=widget.image,
                 x=x,
                 y=y,
@@ -114,7 +114,7 @@ def render(widget: Widget, state: ModalState):
             )
 
         if widget.text is not None:
-            render_text(widget, state)
+            _render_text(widget, state)
 
         bgl.glDisable(bgl.GL_BLEND)
 
@@ -125,13 +125,13 @@ def render(widget: Widget, state: ModalState):
     if widget._style.display == Display.SCROLL:
         for child in widget._children:
             if child._layout.scissor.contains(child._layout.border, True):
-                render(child, state)
+                render_widget(child, state)
     else:
         for child in widget._children:
-            render(child, state)
+            render_widget(child, state)
 
 
-def render_standard(
+def _render_standard(
     x: float,
     y: float,
     width: float,
@@ -143,22 +143,22 @@ def render_standard(
     vertices: tuple,
     indices: tuple,
 ):
-    if Shaders.standard is None:
+    if _Shaders.standard is None:
         raise Exception('Shader must be compiled first.')
 
-    Shaders.standard.bind()
-    Shaders.standard.uniform_float('u_position', [x, y])
-    Shaders.standard.uniform_float('u_size', [width, height])
-    Shaders.standard.uniform_float('u_color', color)
-    Shaders.standard.uniform_float('u_border_color', border_color)
-    Shaders.standard.uniform_float('u_border_radius', border_radius)
-    Shaders.standard.uniform_float('u_border_thickness', border_thickness)
+    _Shaders.standard.bind()
+    _Shaders.standard.uniform_float('u_position', [x, y])
+    _Shaders.standard.uniform_float('u_size', [width, height])
+    _Shaders.standard.uniform_float('u_color', color)
+    _Shaders.standard.uniform_float('u_border_color', border_color)
+    _Shaders.standard.uniform_float('u_border_radius', border_radius)
+    _Shaders.standard.uniform_float('u_border_thickness', border_thickness)
 
-    batch: GPUBatch = batch_for_shader(Shaders.standard, 'TRIS', {'position': vertices}, indices=indices)
-    batch.draw(Shaders.standard)
+    batch: GPUBatch = batch_for_shader(_Shaders.standard, 'TRIS', {'position': vertices}, indices=indices)
+    batch.draw(_Shaders.standard)
 
 
-def render_image(
+def _render_image(
     image: Image,
     x: float,
     y: float,
@@ -171,35 +171,35 @@ def render_image(
     vertices: tuple,
     indices: tuple,
 ):
-    if Shaders.image is None:
+    if _Shaders.image is None:
         raise Exception('Shader must be compiled first.')
 
     if image.gl_load():
         raise Exception('Failed to load image.')
 
-    Shaders.image.bind()
-    Shaders.image.uniform_float('u_position', [x, y])
-    Shaders.image.uniform_float('u_size', [width, height])
-    Shaders.image.uniform_float('u_color', color)
-    Shaders.image.uniform_float('u_border_color', border_color)
-    Shaders.image.uniform_float('u_border_radius', border_radius)
-    Shaders.image.uniform_float('u_border_thickness', border_thickness)
-    Shaders.image.uniform_int('u_image', 0)
+    _Shaders.image.bind()
+    _Shaders.image.uniform_float('u_position', [x, y])
+    _Shaders.image.uniform_float('u_size', [width, height])
+    _Shaders.image.uniform_float('u_color', color)
+    _Shaders.image.uniform_float('u_border_color', border_color)
+    _Shaders.image.uniform_float('u_border_radius', border_radius)
+    _Shaders.image.uniform_float('u_border_thickness', border_thickness)
+    _Shaders.image.uniform_int('u_image', 0)
 
     bgl.glActiveTexture(bgl.GL_TEXTURE0)
     bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
     bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
     bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
 
-    batch: GPUBatch = batch_for_shader(Shaders.image, 'TRIS', {'position': vertices}, indices=indices)
-    batch.draw(Shaders.image)
+    batch: GPUBatch = batch_for_shader(_Shaders.image, 'TRIS', {'position': vertices}, indices=indices)
+    batch.draw(_Shaders.image)
 
     bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)
 
     image.gl_free()
 
 
-def render_text(widget: Widget, state: ModalState):
+def _render_text(widget: Widget, state: ModalState):
     x = widget._layout.text.x
     y = widget._layout.text.y
     height = widget._layout.text.height

@@ -5,7 +5,7 @@ from typing import List, Set, Union
 from ..content import Image
 from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState
 from ..layout import Layout, compute_layout
-from ..render import render
+from ..render import compile_shaders, render_widget
 from ..style import DEFAULT_STYLE, Display, Style, compute_style
 
 
@@ -51,7 +51,8 @@ class Widget:
 
     def render(self, state: ModalState):
         '''Render this widget and its children.'''
-        render(self, state)
+        compile_shaders(recompile=False)
+        render_widget(self, state)
 
     def handle(self, state: ModalState) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''

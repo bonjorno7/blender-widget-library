@@ -15,7 +15,6 @@ from bpy.utils import register_class, unregister_class
 
 from .bwl.content import Font, Image
 from .bwl.input import ModalState
-from .bwl.render import compile_shaders
 from .bwl.style import Align, Color, Corners, Criteria, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets import Widget
@@ -240,9 +239,8 @@ class ExampleOperator(Operator):
                     ]
                     element.text = f'Item number {number}'
 
-            # Finally compute the layout.
+            # Finally compute layout and styles.
             self.root.compute(self.state)
-            compile_shaders()
 
             self.setup(context)
             return {'RUNNING_MODAL'}
