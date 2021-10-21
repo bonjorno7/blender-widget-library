@@ -16,7 +16,7 @@ from bpy.utils import register_class, unregister_class
 from .bwl.content import Font, Image
 from .bwl.input import ModalState
 from .bwl.render import compile_shaders
-from .bwl.style import Align, Color, Corners, Criterion, Direction, Display, Sides, Size, Style, Visibility
+from .bwl.style import Align, Color, Corners, Criteria, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets import Widget
 
@@ -132,11 +132,11 @@ class ExampleOperator(Operator):
                     align_y=Align.CENTER,
                 ),
                 Style(
-                    criteria={Criterion.HOVER},
+                    criteria=Criteria(hover=True),
                     background_color=Color(0.769, 0.169, 0.110),
                 ),
                 Style(
-                    criteria={Criterion.ACTIVE},
+                    criteria=Criteria(active=True),
                     background_color=Color(0.698, 0.165, 0.114),
                 ),
             ]
@@ -202,7 +202,7 @@ class ExampleOperator(Operator):
                         border_thickness=1,
                     ),
                     Style(
-                        criteria={Criterion.HOVER},
+                        criteria=Criteria(hover=True),
                         padding=Sides(3),
                         border_thickness=2,
                     ),
@@ -225,16 +225,16 @@ class ExampleOperator(Operator):
                             font=res_font_roboto,
                         ),
                         Style(
-                            criteria={Criterion.HOVER},
+                            criteria=Criteria(hover=True),
                             foreground_color=Color(1.0),
                             background_color=Color(0.4),
                         ),
                         Style(
-                            criteria={Criterion.SELECT},
+                            criteria=Criteria(select=True),
                             background_color=Color(0.25, 0.45, 0.65),
                         ),
                         Style(
-                            criteria={Criterion.SELECT, Criterion.HOVER},
+                            criteria=Criteria(select=True, hover=True),
                             background_color=Color(0.35, 0.55, 0.75),
                         ),
                     ]

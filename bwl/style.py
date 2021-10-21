@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Iterator, Set, Union, overload
+from typing import TYPE_CHECKING, Callable, Iterator, Union, overload
 
 from .content import Font
 
@@ -10,12 +10,22 @@ if TYPE_CHECKING:
     from .widgets.widget import Widget
 
 
-class Criterion(Enum):
+class Criteria:
     '''When to use the style.'''
-    HOVER = auto()
-    ACTIVE = auto()
-    SELECT = auto()
-    FOCUS = auto()
+
+    def __init__(
+        self,
+        hover: bool = False,
+        active: bool = False,
+        select: bool = False,
+        focus: bool = False,
+        custom: Callable[[Widget, ModalState], bool] = None,
+    ):
+        self.hover = hover
+        self.active = active
+        self.select = select
+        self.focus = focus
+        self.custom = custom
 
 
 class Display(Enum):
@@ -193,7 +203,7 @@ class Style:
 
     def __init__(
         self,
-        criteria: Set[Criterion] = None,
+        criteria: Criteria = None,
         display: Display = None,
         visibility: Visibility = None,
         direction: Direction = None,
@@ -215,6 +225,7 @@ class Style:
         font_size: int = None,
     ):
         self.criteria = criteria
+
         self.display = display
         self.visibility = visibility
 
@@ -293,7 +304,7 @@ class Style:
 
 
 DEFAULT_STYLE = Style(
-    criteria=set(),
+    criteria=Criteria(),
     display=Display.STANDARD,
     visibility=Visibility.VISIBLE,
     direction=Direction.VERTICAL,
@@ -321,14 +332,16 @@ def compute_style(widget: Widget, state: ModalState):
     widget._style = DEFAULT_STYLE
 
     for style in widget.styles:
-        if style.criteria:
-            if (Criterion.HOVER in style.criteria) and (not widget._hover):
+        if style.criteria is not None:
+            if style.criteria.hover and not widget._hover:
                 continue
-            if (Criterion.ACTIVE in style.criteria) and (not widget._active):
+            if style.criteria.active and not widget._active:
                 continue
-            if (Criterion.SELECT in style.criteria) and (not widget._select):
+            if style.criteria.select and not widget._select:
                 continue
-            if (Criterion.FOCUS in style.criteria) and (not widget._focus):
+            if style.criteria.focus and not widget._focus:
+                continue
+            if callable(style.criteria.custom) and not style.criteria.custom(widget, state):
                 continue
 
         widget._style += style
