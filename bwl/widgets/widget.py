@@ -7,15 +7,7 @@ from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState
 from ..layout import Layout, compute_layout
 from ..render import compile_shaders, render_widget
 from ..style import DEFAULT_STYLE, Display, Style, compute_style
-
-
-def abstract(func):
-    func.abstract = True
-    return func
-
-
-def is_abstract(func) -> bool:
-    return getattr(func, 'abstract', False)
+from ..utils import abstract, is_abstract
 
 
 class Widget:

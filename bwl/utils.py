@@ -61,3 +61,14 @@ def show_hud(context: Context):
     HUD.redo = False
     HUD.overlays = False
     HUD.gizmo = False
+
+
+def abstract(function):
+    '''Mark the given function as abstract.'''
+    function.abstract = True
+    return function
+
+
+def is_abstract(function) -> bool:
+    '''Check if the given function is marked as abstract.'''
+    return getattr(function, 'abstract', False)
