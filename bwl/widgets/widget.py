@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Set, Union
 
 from ..content import Image
-from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState
+from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState, under_mouse
 from ..layout import Layout, compute_layout
 from ..render import compile_shaders, render_widget
 from ..style import DEFAULT_STYLE, Display, Style, compute_style
@@ -33,9 +33,6 @@ class Widget:
         self.image: Union[Image, None] = None
         self.text: Union[str, None] = None
 
-        if not is_abstract(self.on_init):
-            self.on_init(parent)
-
     def compute(self, state: ModalState):
         '''Compute style and layout of this widget and its children.'''
         compute_style(self, state)
@@ -55,25 +52,23 @@ class Widget:
             if child.handle(state):
                 return True
 
-        return self.on_event(state)
-
-    def on_event(self, state: ModalState) -> bool:
-        '''Called when this widget receives an event.'''
         if state.event.type == 'MOUSEMOVE':
-            hover = self.under_mouse(state)
+            hover = under_mouse(self, state)
 
             if not is_abstract(self.on_mouse_move):
                 self.on_mouse_move(state)
 
-            if not is_abstract(self.on_mouse_enter):
-                if not self._hover and hover:
+            if not self._hover and hover:
+                self._hover = hover
+
+                if not is_abstract(self.on_mouse_enter):
                     self.on_mouse_enter(state)
 
-            if not is_abstract(self.on_mouse_leave):
-                if self._hover and not hover:
-                    self.on_mouse_leave(state)
+            elif self._hover and not hover:
+                self._hover = hover
 
-            self._hover = hover
+                if not is_abstract(self.on_mouse_leave):
+                    self.on_mouse_leave(state)
 
         elif state.event.type in SCROLL:
             if not is_abstract(self.on_mouse_scroll):
@@ -85,6 +80,7 @@ class Widget:
             if state.event.value == 'PRESS':
                 if self._hover:
                     self._pressed.add(state.event.type)
+                    self._active = bool(self._pressed)
 
                     if not is_abstract(self.on_mouse_press):
                         self.on_mouse_press(state)
@@ -93,12 +89,12 @@ class Widget:
             elif state.event.value == 'RELEASE':
                 if state.event.type in self._pressed:
                     self._pressed.remove(state.event.type)
+                    self._active = bool(self._pressed)
 
-                    if not is_abstract(self.on_mouse_release):
-                        self.on_mouse_release(state)
-                        return True
-
-            self._active = bool(self._pressed)
+                    if self._hover:
+                        if not is_abstract(self.on_mouse_release):
+                            self.on_mouse_release(state)
+                            return True
 
         elif state.event.type in KEYS:
             if self._focus:
@@ -113,59 +109,53 @@ class Widget:
                         return True
 
         else:
-            if not is_abstract(self.on_misc):
-                self.on_misc(state)
+            if not is_abstract(self.on_misc_event):
+                self.on_misc_event(state)
                 return True
 
         return False
 
-    def under_mouse(self, state: ModalState) -> bool:
-        '''Check whether the cursor is inside the border of this widget.'''
-        if self._layout.scissor is not None:
-            if not self._layout.scissor.contains(state.mouse_x, state.mouse_y):
-                return False
-
-        if not self._layout.border.contains(state.mouse_x, state.mouse_y):
-            return False
-
-        return True
-
-    @abstract
-    def on_init(self, parent: Union[Widget, None]):
-        ...
-
     @abstract
     def on_mouse_move(self, state: ModalState):
+        '''Called on mouse move events.'''
         ...
 
     @abstract
     def on_mouse_enter(self, state: ModalState):
+        '''Called when the cursor enters this widget's border.'''
         ...
 
     @abstract
     def on_mouse_leave(self, state: ModalState):
+        '''Called when the cursor leaves this widget's border.'''
         ...
 
     @abstract
     def on_mouse_scroll(self, state: ModalState):
+        '''Called on mouse scroll events inside this widget.'''
         ...
 
     @abstract
     def on_mouse_press(self, state: ModalState):
+        '''Called on mouse press events inside this widget.'''
         ...
 
     @abstract
     def on_mouse_release(self, state: ModalState):
+        '''Called on mouse release events inside this widget, if the button was pressed inside this widget.'''
         ...
 
     @abstract
     def on_key_press(self, state: ModalState):
+        '''Called on key press events, if this widget is focused.'''
         ...
 
     @abstract
     def on_key_release(self, state: ModalState):
+        '''Called on key release events, if this widget is focused.'''
         ...
 
     @abstract
-    def on_misc(self, state: ModalState):
+    def on_misc_event(self, state: ModalState):
+        '''Called on miscellaneous events.'''
         ...

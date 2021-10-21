@@ -65,9 +65,11 @@ class ExampleOperator(Operator):
             # Setup window. Windows 11 themed.
             class Window(Widget):
 
-                def on_event(self, state: ModalState) -> bool:
+                def handle(self, state: ModalState) -> bool:
+                    handled = super().handle(state)
+
                     # Consume all events when the cursor is inside the window.
-                    return self.under_mouse(state)
+                    return handled or self._hover
 
             window = Window(parent=self.root)
             window.styles = [
@@ -112,13 +114,9 @@ class ExampleOperator(Operator):
             class Button(Widget):
 
                 def on_mouse_release(self, state: ModalState):
-                    if self._hover:
-                        if state.event.type == 'LEFTMOUSE':
-                            self.execute(state)
-
-                def execute(self, state: ModalState):
-                    operator: ExampleOperator = state.operator
-                    operator.should_close = True
+                    if state.event.type == 'LEFTMOUSE':
+                        operator: ExampleOperator = state.operator
+                        operator.should_close = True
 
             exit_button = Button(parent=header)
             exit_button.styles = [
