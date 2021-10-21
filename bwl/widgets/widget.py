@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Union
+from typing import List, Set, Union
 
 from ..content import Image
 from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState
@@ -25,17 +25,17 @@ class Widget:
         if parent is not None:
             parent._children.append(self)
 
-        self._parent = parent
+        self._parent: Union[Widget, None] = parent
         self._children: List[Widget] = []
 
-        self._style = DEFAULT_STYLE
-        self._layout = Layout()
-        self._pressed = set()
+        self._style: Style = DEFAULT_STYLE
+        self._layout: Layout = Layout()
+        self._pressed: Set[str] = set()
 
-        self._hover = False
-        self._active = False
-        self._select = False
-        self._focus = False
+        self._hover: bool = False
+        self._active: bool = False
+        self._select: bool = False
+        self._focus: bool = False
 
         self.styles: List[Style] = []
         self.image: Union[Image, None] = None
