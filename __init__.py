@@ -276,7 +276,7 @@ class ExampleOperator(Operator):
         self.root.render(self.state)
 
     def setup(self, context: Context) -> bool:
-        hide_hud(context)
+        hide_hud(context, sidebar=True, redo=True, overlays=True)
 
         self.draw_handler = SpaceView3D.draw_handler_add(self.draw_callback, (), 'WINDOW', 'POST_PIXEL')
         context.area.tag_redraw()

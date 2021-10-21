@@ -13,16 +13,30 @@ class _HUD:
     gizmo: bool = False
 
 
-def hide_hud(context: Context):
+def hide_hud(
+    context: Context,
+    header: bool = False,
+    toolbar: bool = False,
+    sidebar: bool = False,
+    redo: bool = False,
+    overlays: bool = False,
+    gizmo: bool = False,
+):
     '''Hide all HUD elements, store their previous state.'''
     space_data: SpaceView3D = context.space_data
 
-    _HUD.header = space_data.show_region_header
-    _HUD.toolbar = space_data.show_region_toolbar
-    _HUD.sidebar = space_data.show_region_ui
-    _HUD.redo = space_data.show_region_hud
-    _HUD.overlays = space_data.overlay.show_overlays
-    _HUD.gizmo = space_data.show_gizmo
+    if header:
+        _HUD.header = space_data.show_region_header
+    if toolbar:
+        _HUD.toolbar = space_data.show_region_toolbar
+    if sidebar:
+        _HUD.sidebar = space_data.show_region_ui
+    if redo:
+        _HUD.redo = space_data.show_region_hud
+    if overlays:
+        _HUD.overlays = space_data.overlay.show_overlays
+    if gizmo:
+        _HUD.gizmo = space_data.show_gizmo
 
     if _HUD.header:
         space_data.show_region_header = False
