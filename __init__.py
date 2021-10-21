@@ -33,8 +33,8 @@ class ExampleOperator(Operator):
 
             # Load resources.
             resources_path = Path(__file__).parent.joinpath('resources')
-            res_image_blender = Image(resources_path.joinpath('blender.png'))
-            res_image_cross = Image(resources_path.joinpath('cross.png'))
+            res_image_blender = Image.from_file(resources_path.joinpath('blender.png'))
+            res_image_cross = Image.from_file(resources_path.joinpath('cross.png'))
             res_font_roboto = Font(resources_path.joinpath('roboto.ttf'))
 
             self.resources = (
