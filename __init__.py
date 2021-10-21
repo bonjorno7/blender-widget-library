@@ -284,21 +284,17 @@ class ExampleOperator(Operator):
 
     def cleanup(self, context: Context):
         # Every step is in a try block because this function can not fail.
-        try:
-            show_hud(context)
-        except:
-            pass
+        for step in (
+            lambda: show_hud(context),
+            lambda: SpaceView3D.draw_handler_remove(self.draw_handler, 'WINDOW'),
+            lambda: context.area.tag_redraw(),
+        ):
+            try:
+                step()
+            except:
+                pass
 
-        try:
-            SpaceView3D.draw_handler_remove(self.draw_handler, 'WINDOW')
-        except:
-            pass
-
-        try:
-            context.area.tag_redraw()
-        except:
-            pass
-
+        # Clean up images and fonts.
         for resource in self.resources:
             try:
                 resource.remove()
