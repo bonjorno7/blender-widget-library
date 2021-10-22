@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Set, Union
 
 from ..content import Image
-from ..input import KEYS, MOUSE_BUTTONS, SCROLL, ModalState, under_mouse
+from ..input import ModalState, under_mouse
 from ..layout import Layout, compute_layout
 from ..render import compile_shaders, render_widget
 from ..style import DEFAULT_STYLE, Display, Style, compute_style
@@ -52,7 +52,7 @@ class Widget:
             if child.handle(state):
                 return True
 
-        if state.event.type == 'MOUSEMOVE':
+        if state.is_move:
             hover = under_mouse(self, state)
 
             if not is_abstract(self.on_mouse_move):
@@ -70,13 +70,7 @@ class Widget:
                 if not is_abstract(self.on_mouse_leave):
                     self.on_mouse_leave(state)
 
-        elif state.event.type in SCROLL:
-            if not is_abstract(self.on_mouse_scroll):
-                if self._hover:
-                    self.on_mouse_scroll(state)
-                    return True
-
-        elif state.event.type in MOUSE_BUTTONS:
+        elif state.is_mouse:
             if state.event.value == 'PRESS':
                 if self._hover:
                     self._pressed.add(state.event.type)
@@ -96,7 +90,13 @@ class Widget:
                             self.on_mouse_release(state)
                             return True
 
-        elif state.event.type in KEYS:
+        elif state.is_scroll:
+            if not is_abstract(self.on_mouse_scroll):
+                if self._hover:
+                    self.on_mouse_scroll(state)
+                    return True
+
+        elif state.is_keyboard:
             if self._focus:
                 if state.event.value == 'PRESS':
                     if not is_abstract(self.on_key_press):
