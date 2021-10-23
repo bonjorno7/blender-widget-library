@@ -64,6 +64,17 @@ class Layout:
         # None means don't use scissor.
         self.scissor: Union[Area, None] = None
 
+    def under_mouse(self, state: ModalState) -> bool:
+        '''Check whether the cursor is inside this layout.'''
+        if self.scissor is not None:
+            if not self.scissor.contains(state.mouse_x, state.mouse_y):
+                return False
+
+        if not self.border.contains(state.mouse_x, state.mouse_y):
+            return False
+
+        return True
+
 
 def compute_layout(widget: Widget, state: ModalState):
     '''Compute layout for the given widget and its children.'''

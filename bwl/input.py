@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from bpy.types import Context, Event, Operator
 
 from .layout import Area
-
-if TYPE_CHECKING:
-    from .widgets import Widget
 
 
 class ModalState:
@@ -26,18 +21,6 @@ class ModalState:
         self.is_mouse = self.event.type in _EventTypes.mouse
         self.is_scroll = self.event.type in _EventTypes.scroll
         self.is_keyboard = self.event.type in _EventTypes.keyboard
-
-
-def under_mouse(widget: Widget, state: ModalState) -> bool:
-    '''Check whether the cursor is inside the border of the given widget.'''
-    if widget._layout.scissor is not None:
-        if not widget._layout.scissor.contains(state.mouse_x, state.mouse_y):
-            return False
-
-    if not widget._layout.border.contains(state.mouse_x, state.mouse_y):
-        return False
-
-    return True
 
 
 class _EventTypes:

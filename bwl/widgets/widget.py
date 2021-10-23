@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Set, Union
 
 from ..content import Image
-from ..input import ModalState, under_mouse
+from ..input import ModalState
 from ..layout import Layout, compute_layout
 from ..render import compile_shaders, render_widget
 from ..style import DEFAULT_STYLE, Display, Style, compute_style
@@ -53,7 +53,7 @@ class Widget:
                 return True
 
         if state.is_move:
-            hover = under_mouse(self, state)
+            hover = self._layout.under_mouse(state)
 
             if not is_abstract(self.on_mouse_move):
                 self.on_mouse_move(state)
