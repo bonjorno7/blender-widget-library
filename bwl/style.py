@@ -59,7 +59,7 @@ class Size(Enum):
     '''How to calculate the size along an axis.'''
     AUTO = auto()
     FLEX = auto()
-    IMAGE = auto()
+    TEXTURE = auto()
 
 
 class Sides:

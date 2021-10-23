@@ -8,7 +8,7 @@ import blf
 from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
 
-from .content import Image
+from .content import Texture
 from .input import ModalState
 from .layout import Area
 from .style import Color, Display, Visibility
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class _Shaders:
     '''Stored shaders.'''
     standard: GPUShader = None
-    image: GPUShader = None
+    textured: GPUShader = None
 
 
 def compile_shaders(recompile: bool = False):
@@ -32,10 +32,10 @@ def compile_shaders(recompile: bool = False):
         fragment_source = folder.joinpath('standard_fs.glsl').read_text()
         _Shaders.standard = GPUShader(vertex_source, fragment_source)
 
-    if recompile or _Shaders.image is None:
-        vertex_source = folder.joinpath('image_vs.glsl').read_text()
-        fragment_source = folder.joinpath('image_fs.glsl').read_text()
-        _Shaders.image = GPUShader(vertex_source, fragment_source)
+    if recompile or _Shaders.textured is None:
+        vertex_source = folder.joinpath('textured_vs.glsl').read_text()
+        fragment_source = folder.joinpath('textured_fs.glsl').read_text()
+        _Shaders.textured = GPUShader(vertex_source, fragment_source)
 
 
 def render_widget(widget: Widget, state: ModalState):
@@ -84,7 +84,7 @@ def render_widget(widget: Widget, state: ModalState):
 
         bgl.glEnable(bgl.GL_BLEND)
 
-        if widget.image is None:
+        if widget.texture is None:
             _render_standard(
                 x=x,
                 y=y,
@@ -99,8 +99,8 @@ def render_widget(widget: Widget, state: ModalState):
             )
 
         else:
-            _render_image(
-                image=widget.image,
+            _render_texture(
+                texture=widget.texture,
                 x=x,
                 y=y,
                 width=width,
@@ -158,8 +158,8 @@ def _render_standard(
     batch.draw(_Shaders.standard)
 
 
-def _render_image(
-    image: Image,
+def _render_texture(
+    texture: Texture,
     x: float,
     y: float,
     width: float,
@@ -171,32 +171,32 @@ def _render_image(
     vertices: tuple,
     indices: tuple,
 ):
-    if _Shaders.image is None:
+    if _Shaders.textured is None:
         raise Exception('Shader must be compiled first.')
 
-    if image.gl_load():
-        raise Exception('Failed to load image.')
+    if texture.gl_load():
+        raise Exception('Failed to load texture.')
 
-    _Shaders.image.bind()
-    _Shaders.image.uniform_float('u_position', [x, y])
-    _Shaders.image.uniform_float('u_size', [width, height])
-    _Shaders.image.uniform_float('u_color', color)
-    _Shaders.image.uniform_float('u_border_color', border_color)
-    _Shaders.image.uniform_float('u_border_radius', border_radius)
-    _Shaders.image.uniform_float('u_border_thickness', border_thickness)
-    _Shaders.image.uniform_int('u_image', 0)
+    _Shaders.textured.bind()
+    _Shaders.textured.uniform_float('u_position', [x, y])
+    _Shaders.textured.uniform_float('u_size', [width, height])
+    _Shaders.textured.uniform_float('u_color', color)
+    _Shaders.textured.uniform_float('u_border_color', border_color)
+    _Shaders.textured.uniform_float('u_border_radius', border_radius)
+    _Shaders.textured.uniform_float('u_border_thickness', border_thickness)
+    _Shaders.textured.uniform_int('u_texture', 0)
 
     bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
+    bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture.bindcode)
     bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
     bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
 
-    batch: GPUBatch = batch_for_shader(_Shaders.image, 'TRIS', {'position': vertices}, indices=indices)
-    batch.draw(_Shaders.image)
+    batch: GPUBatch = batch_for_shader(_Shaders.textured, 'TRIS', {'position': vertices}, indices=indices)
+    batch.draw(_Shaders.textured)
 
     bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)
 
-    image.gl_free()
+    texture.gl_free()
 
 
 def _render_text(widget: Widget, state: ModalState):

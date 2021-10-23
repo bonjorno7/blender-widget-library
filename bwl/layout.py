@@ -113,12 +113,12 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
         widget._layout.padding.width = widget._layout.border.width - (widget._style.border_thickness * 2)
         widget._layout.inside.width = widget._layout.padding.width - widget._style.padding.width
 
-    # Use the width of our image.
-    elif widget._style.width == Size.IMAGE:
-        if widget.image is None:
-            raise Exception('Widgets that get size from image must have an image')
+    # Use the width of our texture.
+    elif widget._style.width == Size.TEXTURE:
+        if widget.texture is None:
+            raise Exception('Widgets that get size from texture must have a texture')
 
-        widget._layout.padding.width = widget.image.width
+        widget._layout.padding.width = widget.texture.width
         widget._layout.inside.width = widget._layout.padding.width - widget._style.padding.width
         widget._layout.border.width = widget._layout.padding.width + (widget._style.border_thickness * 2)
         widget._layout.margin.width = widget._layout.border.width + widget._style.margin.width
@@ -178,12 +178,12 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
         widget._layout.padding.height = widget._layout.border.height - (widget._style.border_thickness * 2)
         widget._layout.inside.height = widget._layout.padding.height - widget._style.padding.height
 
-    # Use the height of our image.
-    elif widget._style.height == Size.IMAGE:
-        if widget.image is None:
-            raise Exception('Widgets that get size from image must have an image')
+    # Use the height of our texture.
+    elif widget._style.height == Size.TEXTURE:
+        if widget.texture is None:
+            raise Exception('Widgets that get size from texture must have a texture')
 
-        widget._layout.padding.height = widget.image.height
+        widget._layout.padding.height = widget.texture.height
         widget._layout.inside.height = widget._layout.padding.height - widget._style.padding.height
         widget._layout.border.height = widget._layout.padding.height + (widget._style.border_thickness * 2)
         widget._layout.margin.height = widget._layout.border.height + widget._style.margin.height

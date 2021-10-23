@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Set, Union
 
-from ..content import Image
+from ..content import Texture
 from ..input import ModalState
 from ..layout import Layout, compute_layout
 from ..render import compile_shaders, render_widget
@@ -30,7 +30,7 @@ class Widget:
         self._focus: bool = False
 
         self.styles: List[Style] = []
-        self.image: Union[Image, None] = None
+        self.texture: Union[Texture, None] = None
         self.text: Union[str, None] = None
 
     def compute(self, state: ModalState):

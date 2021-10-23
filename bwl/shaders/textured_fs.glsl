@@ -6,7 +6,7 @@ uniform vec4 u_color;
 uniform vec4 u_border_color;
 uniform vec4 u_border_radius;
 uniform float u_border_thickness;
-uniform sampler2D u_image;
+uniform sampler2D u_texture;
 
 float rect_sdf(vec2 p, vec2 s, float r)
 {
@@ -20,7 +20,7 @@ void main()
     vec2 half_size = u_size / 2.0 + u_border_thickness;
 
     vec2 uv = (gl_FragCoord.xy - u_position.xy) / u_size;
-    vec4 color = u_color * texture(u_image, uv);
+    vec4 color = u_color * texture(u_texture, uv);
 
     float border_radius_left = position.y > 0.0 ? u_border_radius.x : u_border_radius.y;
     float border_radius_right = position.y > 0.0 ? u_border_radius.z : u_border_radius.w;

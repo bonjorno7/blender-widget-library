@@ -13,7 +13,7 @@ from pathlib import Path
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
-from .bwl.content import Font, Image
+from .bwl.content import Font, Texture
 from .bwl.input import ModalState
 from .bwl.style import Align, Color, Corners, Criteria, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utils import hide_hud, show_hud
@@ -33,13 +33,13 @@ class ExampleOperator(Operator):
 
             # Load resources.
             resources_path = Path(__file__).parent.joinpath('resources')
-            res_image_blender = Image.from_file(resources_path.joinpath('blender.png'))
-            res_image_cross = Image.from_file(resources_path.joinpath('cross.png'))
+            res_texture_blender = Texture.from_file(resources_path.joinpath('blender.png'))
+            res_texture_cross = Texture.from_file(resources_path.joinpath('cross.png'))
             res_font_roboto = Font(resources_path.joinpath('roboto.ttf'))
 
             self.resources = (
-                res_image_blender,
-                res_image_cross,
+                res_texture_blender,
+                res_texture_cross,
                 res_font_roboto,
             )
 
@@ -102,9 +102,9 @@ class ExampleOperator(Operator):
             header.text = 'Blender Widget Library'
 
             # Setup window icon.
-            image_blender = Widget(parent=header)
-            image_blender.styles = [Style(width=Size.IMAGE, height=Size.IMAGE, margin=Sides(8))]
-            image_blender.image = res_image_blender
+            icon_blender = Widget(parent=header)
+            icon_blender.styles = [Style(width=Size.TEXTURE, height=Size.TEXTURE, margin=Sides(8))]
+            icon_blender.texture = res_texture_blender
 
             # Title bar spacer.
             spacer = Widget(parent=header)
@@ -140,8 +140,8 @@ class ExampleOperator(Operator):
 
             # Setup exit button icon.
             cross_icon = Widget(parent=exit_button)
-            cross_icon.styles = [Style(width=Size.IMAGE, height=Size.IMAGE)]
-            cross_icon.image = res_image_cross
+            cross_icon.styles = [Style(width=Size.TEXTURE, height=Size.TEXTURE)]
+            cross_icon.texture = res_texture_cross
 
             # Setup content frame.
             frame = Widget(parent=window)
@@ -294,7 +294,7 @@ class ExampleOperator(Operator):
             except:
                 pass
 
-        # Clean up images and fonts.
+        # Clean up textures and fonts.
         for resource in self.resources:
             try:
                 resource.remove()

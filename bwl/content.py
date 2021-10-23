@@ -6,19 +6,19 @@ import blf
 import bpy
 
 
-class Image:
+class Texture:
 
     def __init__(self, data: bpy.types.Image):
         self.data = data
 
     @classmethod
-    def from_file(cls, path: Path) -> Image:
+    def from_file(cls, path: Path) -> Texture:
         data = bpy.data.images.load(str(path), check_existing=True)
         data.colorspace_settings.name = 'Raw'
         return cls(data)
 
     @classmethod
-    def from_buffer(cls, name: str, buffer: bytes, width: int, height: int) -> Image:
+    def from_buffer(cls, name: str, buffer: bytes, width: int, height: int) -> Texture:
         data = bpy.data.images.new(name, width, height, is_data=True)
         data.pack(buffer, len(buffer))
         return cls(data)
