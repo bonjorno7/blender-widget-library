@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Set, Union
+from typing import List, Set, Tuple, Union
 
 from .content import Texture
 from .input import ModalState
@@ -32,6 +32,36 @@ class Widget:
         self.styles: List[Style] = []
         self.texture: Union[Texture, None] = None
         self.text: Union[str, None] = None
+
+    @property
+    def parent(self) -> Union[Widget, None]:
+        '''The parent of this widget.'''
+        return self._parent
+
+    @property
+    def children(self) -> Tuple[Widget]:
+        '''The children of this widget.'''
+        return tuple(self._children)
+
+    @property
+    def hover(self) -> bool:
+        '''Whether the cursor is inside the border of this widget.'''
+        return self._hover
+
+    @property
+    def active(self) -> bool:
+        '''Whether the mouse is pressed on this widget.'''
+        return self._active
+
+    @property
+    def select(self) -> bool:
+        '''Whether this widget is selected.'''
+        return self._select
+
+    @property
+    def focus(self) -> bool:
+        '''Whether this widget is focused.'''
+        return self._focus
 
     def compute(self, state: ModalState):
         '''Compute style and layout of this widget and its children.'''
