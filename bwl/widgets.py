@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import List, Set, Union
 
-from ..content import Texture
-from ..input import ModalState
-from ..layout import Layout, compute_layout
-from ..render import compile_shaders, render_widget
-from ..style import DEFAULT_STYLE, Display, Style, compute_style
-from ..utils import abstract, is_abstract
+from .content import Texture
+from .input import ModalState
+from .layout import Layout, compute_layout
+from .render import compile_shaders, render_widget
+from .style import DEFAULT_STYLE, Display, Style, compute_style
+from .utils import abstract, is_abstract
 
 
 class Widget:
