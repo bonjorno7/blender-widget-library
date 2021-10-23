@@ -139,9 +139,9 @@ class ExampleOperator(Operator):
             ]
 
             # Setup exit button icon.
-            cross_icon = Widget(parent=exit_button)
-            cross_icon.styles = [Style(width=Size.TEXTURE, height=Size.TEXTURE)]
-            cross_icon.texture = res_texture_cross
+            icon_cross = Widget(parent=exit_button)
+            icon_cross.styles = [Style(width=Size.TEXTURE, height=Size.TEXTURE)]
+            icon_cross.texture = res_texture_cross
 
             # Setup content frame.
             frame = Widget(parent=window)
