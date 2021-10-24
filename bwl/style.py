@@ -210,8 +210,8 @@ class Style:
         scroll: float = None,
         align_x: Align = None,
         align_y: Align = None,
-        x: float = None,
-        y: float = None,
+        offset_x: float = None,
+        offset_y: float = None,
         width: Union[Size, float] = None,
         height: Union[Size, float] = None,
         margin: Sides = None,
@@ -235,8 +235,8 @@ class Style:
         self.align_x = align_x
         self.align_y = align_y
 
-        self.x = x
-        self.y = y
+        self.offset_x = offset_x
+        self.offset_y = offset_y
 
         self.width = width
         self.height = height
@@ -263,8 +263,8 @@ class Style:
             scroll=other.scroll if (other.scroll is not None) else self.scroll,
             align_x=other.align_x if (other.align_x is not None) else self.align_x,
             align_y=other.align_y if (other.align_y is not None) else self.align_y,
-            x=other.x if (other.x is not None) else self.x,
-            y=other.y if (other.y is not None) else self.y,
+            offset_x=other.offset_x if (other.offset_x is not None) else self.offset_x,
+            offset_y=other.offset_y if (other.offset_y is not None) else self.offset_y,
             width=other.width if (other.width is not None) else self.width,
             height=other.height if (other.height is not None) else self.height,
             margin=other.margin if (other.margin is not None) else self.margin,
@@ -287,8 +287,8 @@ class Style:
             scroll=self.scroll,
             align_x=self.align_x,
             align_y=self.align_y,
-            x=self.x,
-            y=self.y,
+            offset_x=self.offset_x,
+            offset_y=self.offset_y,
             width=self.width,
             height=self.height,
             margin=self.margin,
@@ -311,8 +311,8 @@ DEFAULT_STYLE = Style(
     scroll=0,
     align_x=Align.START,
     align_y=Align.START,
-    x=0,
-    y=0,
+    offset_x=0,
+    offset_y=0,
     width=Size.AUTO,
     height=Size.AUTO,
     margin=Sides(0),

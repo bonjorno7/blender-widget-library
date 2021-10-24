@@ -232,7 +232,7 @@ def compute_x(widget: Widget, state: ModalState, x: float = None):
     float_children = [child for child in widget._children if child._style.display == Display.FLOAT]
 
     # Start at the position defined in style.
-    widget._layout.margin.x = widget._style.x
+    widget._layout.margin.x = widget._style.offset_x
 
     # Add the position given by our parent.
     if x is not None:
@@ -284,7 +284,7 @@ def compute_y(widget: Widget, state: ModalState, y: float = None):
     float_children = [child for child in widget._children if child._style.display == Display.FLOAT]
 
     # Start at the position defined in style.
-    widget._layout.margin.y = widget._style.y
+    widget._layout.margin.y = widget._style.offset_y
 
     # Add the position given by our parent.
     if y is not None:
