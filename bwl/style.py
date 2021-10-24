@@ -7,7 +7,7 @@ from .content import Font
 
 if TYPE_CHECKING:
     from .input import ModalState
-    from .widgets.widget import Widget
+    from .widgets import Widget
 
 
 class Criteria:
