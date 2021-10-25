@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Callable, Iterator, Union, overload
+from typing import TYPE_CHECKING, Callable, Iterator, overload
 
 from .content import Font
 
@@ -55,11 +55,35 @@ class Align(Enum):
     END = auto()
 
 
-class Size(Enum):
-    '''How to calculate the size along an axis.'''
-    AUTO = auto()
-    FLEX = auto()
-    TEXTURE = auto()
+class Size:
+    '''The size along an axis.'''
+
+    class Type(Enum):
+        '''How to calculate the size.'''
+        ABSOLUTE = auto()
+        RELATIVE = auto()
+        CHILDREN = auto()
+        TEXTURE = auto()
+
+    def __init__(self, type: Type, value: float = None):
+        self.type = type
+        self.value = value
+
+    @classmethod
+    def absolute(cls, pixels: float):
+        return cls(cls.Type.ABSOLUTE, pixels)
+
+    @classmethod
+    def relative(cls, weight: float = 1):
+        return cls(cls.Type.RELATIVE, weight)
+
+    @classmethod
+    def children(cls):
+        return cls(cls.Type.CHILDREN)
+
+    @classmethod
+    def texture(cls):
+        return cls(cls.Type.TEXTURE)
 
 
 class Sides:
@@ -212,8 +236,8 @@ class Style:
         align_y: Align = None,
         offset_x: float = None,
         offset_y: float = None,
-        width: Union[Size, float] = None,
-        height: Union[Size, float] = None,
+        width: Size = None,
+        height: Size = None,
         margin: Sides = None,
         padding: Sides = None,
         foreground_color: Color = None,
@@ -313,8 +337,8 @@ DEFAULT_STYLE = Style(
     align_y=Align.START,
     offset_x=0,
     offset_y=0,
-    width=Size.AUTO,
-    height=Size.AUTO,
+    width=Size.children(),
+    height=Size.children(),
     margin=Sides(0),
     padding=Sides(0),
     foreground_color=Color(1),

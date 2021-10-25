@@ -99,12 +99,19 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
     '''Compute the content width of this widget and its children, take width taken in parent, return width taken in parent.'''
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.width == Size.FLEX]
-    fixed_children = [child for child in children if child._style.width != Size.FLEX]
+    flex_children = [child for child in children if child._style.width.type is Size.Type.RELATIVE]
+    fixed_children = [child for child in children if child._style.width.type is not Size.Type.RELATIVE]
     float_children = [child for child in widget._children if child._style.display == Display.FLOAT]
 
+    # Use the width defined in our own style.
+    if widget._style.width.type is Size.Type.ABSOLUTE:
+        widget._layout.padding.width = widget._style.width.value
+        widget._layout.inside.width = widget._layout.padding.width - widget._style.padding.width
+        widget._layout.border.width = widget._layout.padding.width + (widget._style.border_thickness * 2)
+        widget._layout.margin.width = widget._layout.border.width + widget._style.margin.width
+
     # Use the width given to us by our parent.
-    if widget._style.width == Size.FLEX:
+    elif widget._style.width.type is Size.Type.RELATIVE:
         if width is None:
             width = state.area.width
 
@@ -114,7 +121,7 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
         widget._layout.inside.width = widget._layout.padding.width - widget._style.padding.width
 
     # Use the width of our texture.
-    elif widget._style.width == Size.TEXTURE:
+    elif widget._style.width.type == Size.Type.TEXTURE:
         if widget.texture is None:
             raise Exception('Widgets that get size from texture must have a texture')
 
@@ -123,30 +130,27 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
         widget._layout.border.width = widget._layout.padding.width + (widget._style.border_thickness * 2)
         widget._layout.margin.width = widget._layout.border.width + widget._style.margin.width
 
-    # Use the width defined in our own style.
-    elif widget._style.width != Size.AUTO:
-        widget._layout.padding.width = widget._style.width
-        widget._layout.inside.width = widget._layout.padding.width - widget._style.padding.width
-        widget._layout.border.width = widget._layout.padding.width + (widget._style.border_thickness * 2)
-        widget._layout.margin.width = widget._layout.border.width + widget._style.margin.width
-
     # Calculate width per stretching child.
     if widget._style.direction == Direction.HORIZONTAL:
         widget._layout.content.width = sum(compute_width(child, state) for child in fixed_children)
-        flexible_width = widget._layout.inside.width - widget._layout.content.width
-        child_width = (flexible_width / len(flex_children)) if flex_children else 0
+
+        if flex_children:
+            flexible_width = widget._layout.inside.width - widget._layout.content.width
+            width_per_weight = flexible_width / sum(child._style.width.value for child in flex_children)
 
     # Stretch children to fit our width.
     elif widget._style.direction == Direction.VERTICAL:
         widget._layout.content.width = max((compute_width(child, state) for child in fixed_children), default=0)
-        child_width = widget._layout.inside.width
+
+        if flex_children:
+            width_per_weight = widget._layout.inside.width
 
     # Stretch children to fit the stretchable width.
     for child in flex_children:
-        compute_width(child, state, child_width)
+        compute_width(child, state, child._style.width.value * width_per_weight)
 
     # Fit our width to our children.
-    if widget._style.width == Size.AUTO:
+    if widget._style.width.type is Size.Type.CHILDREN:
         widget._layout.inside.width = widget._layout.content.width
         widget._layout.padding.width = widget._layout.inside.width + widget._style.padding.width
         widget._layout.border.width = widget._layout.padding.width + (widget._style.border_thickness * 2)
@@ -164,12 +168,19 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
     '''Compute the content height of this widget and its children, take height taken in parent, return height taken in parent.'''
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.height == Size.FLEX]
-    fixed_children = [child for child in children if child._style.height != Size.FLEX]
+    flex_children = [child for child in children if child._style.height.type is Size.Type.RELATIVE]
+    fixed_children = [child for child in children if child._style.height.type is not Size.Type.RELATIVE]
     float_children = [child for child in widget._children if child._style.display == Display.FLOAT]
 
+    # Use the height defined in our own style.
+    if widget._style.height.type is Size.Type.ABSOLUTE:
+        widget._layout.padding.height = widget._style.height.value
+        widget._layout.inside.height = widget._layout.padding.height - widget._style.padding.height
+        widget._layout.border.height = widget._layout.padding.height + (widget._style.border_thickness * 2)
+        widget._layout.margin.height = widget._layout.border.height + widget._style.margin.height
+
     # Use the height given to us by our parent.
-    if widget._style.height == Size.FLEX:
+    elif widget._style.height.type is Size.Type.RELATIVE:
         if height is None:
             height = state.area.height
 
@@ -179,7 +190,7 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
         widget._layout.inside.height = widget._layout.padding.height - widget._style.padding.height
 
     # Use the height of our texture.
-    elif widget._style.height == Size.TEXTURE:
+    elif widget._style.height.type is Size.Type.TEXTURE:
         if widget.texture is None:
             raise Exception('Widgets that get size from texture must have a texture')
 
@@ -188,26 +199,23 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
         widget._layout.border.height = widget._layout.padding.height + (widget._style.border_thickness * 2)
         widget._layout.margin.height = widget._layout.border.height + widget._style.margin.height
 
-    # Use the height defined in our own style.
-    elif widget._style.height != Size.AUTO:
-        widget._layout.padding.height = widget._style.height
-        widget._layout.inside.height = widget._layout.padding.height - widget._style.padding.height
-        widget._layout.border.height = widget._layout.padding.height + (widget._style.border_thickness * 2)
-        widget._layout.margin.height = widget._layout.border.height + widget._style.margin.height
-
     # Calculate height per stretching child.
     if widget._style.direction == Direction.VERTICAL:
         widget._layout.content.height = sum(compute_height(child, state) for child in fixed_children)
-        flexible_height = widget._layout.inside.height - widget._layout.content.height
-        child_height = (flexible_height / len(flex_children)) if flex_children else 0
+
+        if flex_children:
+            flexible_height = widget._layout.inside.height - widget._layout.content.height
+            height_per_weight = flexible_height / sum(child._style.height.value for child in flex_children)
 
     # Stretch children to fit our height.
     elif widget._style.direction == Direction.HORIZONTAL:
         widget._layout.content.height = max((compute_height(child, state) for child in fixed_children), default=0)
-        child_height = widget._layout.inside.height
+
+        if flex_children:
+            height_per_weight = widget._layout.inside.height
 
     # Fit our height to our children.
-    if widget._style.height == Size.AUTO:
+    if widget._style.height.type is Size.Type.CHILDREN:
         widget._layout.inside.height = widget._layout.content.height
         widget._layout.padding.height = widget._layout.inside.height + widget._style.padding.height
         widget._layout.border.height = widget._layout.padding.height + (widget._style.border_thickness * 2)
@@ -215,7 +223,7 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
 
     # Stretch children to fit the stretchable height.
     for child in flex_children:
-        compute_height(child, state, child_height)
+        compute_height(child, state, child._style.height.value * height_per_weight)
 
     # Floating children can take the full height.
     for child in float_children:
@@ -228,7 +236,7 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
 def compute_x(widget: Widget, state: ModalState, x: float = None):
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.width == Size.FLEX]
+    flex_children = [child for child in children if child._style.width.type is Size.Type.RELATIVE]
     float_children = [child for child in widget._children if child._style.display == Display.FLOAT]
 
     # Start at the position defined in style.
@@ -280,7 +288,7 @@ def compute_x(widget: Widget, state: ModalState, x: float = None):
 def compute_y(widget: Widget, state: ModalState, y: float = None):
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.height == Size.FLEX]
+    flex_children = [child for child in children if child._style.height.type is Size.Type.RELATIVE]
     float_children = [child for child in widget._children if child._style.display == Display.FLOAT]
 
     # Start at the position defined in style.

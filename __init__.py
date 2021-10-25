@@ -55,8 +55,8 @@ class ExampleOperator(Operator):
             self.root.styles = [
                 Style(
                     visibility=Visibility.HIDDEN,
-                    width=Size.FLEX,
-                    height=Size.FLEX,
+                    width=Size.relative(),
+                    height=Size.relative(),
                     align_x=Align.CENTER,
                     align_y=Align.CENTER,
                 ),
@@ -75,8 +75,8 @@ class ExampleOperator(Operator):
             window.styles = [
                 Style(
                     direction=Direction.VERTICAL,
-                    width=800,
-                    height=600,
+                    width=Size.absolute(800),
+                    height=Size.absolute(600),
                     background_color=Color(0.15),
                     border_color=Color(0.15),
                     border_radius=Corners(10),
@@ -89,8 +89,8 @@ class ExampleOperator(Operator):
             header.styles = [
                 Style(
                     direction=Direction.HORIZONTAL,
-                    width=Size.FLEX,
-                    height=32,
+                    width=Size.relative(),
+                    height=Size.absolute(32),
                     align_x=Align.CENTER,
                     align_y=Align.CENTER,
                     foreground_color=Color(0.75),
@@ -103,12 +103,12 @@ class ExampleOperator(Operator):
 
             # Setup window icon.
             icon_blender = Widget(parent=header)
-            icon_blender.styles = [Style(width=Size.TEXTURE, height=Size.TEXTURE, margin=Sides(8))]
+            icon_blender.styles = [Style(width=Size.texture(), height=Size.texture(), margin=Sides(8))]
             icon_blender.texture = res_texture_blender
 
             # Title bar spacer.
             spacer = Widget(parent=header)
-            spacer.styles = [Style(visibility=Visibility.HIDDEN, width=Size.FLEX)]
+            spacer.styles = [Style(visibility=Visibility.HIDDEN, width=Size.relative())]
 
             # Setup exit button.
             class Button(Widget):
@@ -122,7 +122,7 @@ class ExampleOperator(Operator):
             exit_button.styles = [
                 Style(
                     background_color=Color(0, 0),
-                    width=45,
+                    width=Size.absolute(45),
                     height=header.styles[0].height,
                     border_radius=Corners(0, 0, 9, 0),
                     align_x=Align.CENTER,
@@ -140,7 +140,7 @@ class ExampleOperator(Operator):
 
             # Setup exit button icon.
             icon_cross = Widget(parent=exit_button)
-            icon_cross.styles = [Style(width=Size.TEXTURE, height=Size.TEXTURE)]
+            icon_cross.styles = [Style(width=Size.texture(), height=Size.texture())]
             icon_cross.texture = res_texture_cross
 
             # Setup content frame.
@@ -148,8 +148,8 @@ class ExampleOperator(Operator):
             frame.styles = [
                 Style(
                     direction=Direction.VERTICAL,
-                    width=Size.FLEX,
-                    height=Size.FLEX,
+                    width=Size.relative(),
+                    height=Size.relative(),
                     background_color=Color(0.25),
                     padding=Sides(5),
                     border_radius=Corners(0, 9),
@@ -189,8 +189,8 @@ class ExampleOperator(Operator):
                         display=Display.SCROLL,
                         scroll=0,
                         direction=direction,
-                        width=Size.FLEX if direction == Direction.HORIZONTAL else Size.AUTO,
-                        height=Size.FLEX if direction == Direction.VERTICAL else Size.AUTO,
+                        width=Size.relative() if direction == Direction.HORIZONTAL else Size.children(),
+                        height=Size.relative() if direction == Direction.VERTICAL else Size.children(),
                         margin=Sides(20, 20, 5 if direction == Direction.HORIZONTAL else 20),
                         padding=Sides(4),
                         background_color=Color(0.35),
@@ -212,8 +212,8 @@ class ExampleOperator(Operator):
                         Style(
                             align_x=Align.CENTER,
                             align_y=Align.CENTER,
-                            width=200,
-                            height=70,
+                            width=Size.absolute(200),
+                            height=Size.absolute(70),
                             margin=Sides(2),
                             foreground_color=Color(0.85),
                             background_color=Color(0.3),
