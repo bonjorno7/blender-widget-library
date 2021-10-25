@@ -75,7 +75,7 @@ class Widget:
 
     def handle(self, state: ModalState) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
-        if self._style.display == Display.NONE:
+        if self._style.display is Display.NONE:
             return False
 
         for child in reversed(self._children):

@@ -41,11 +41,11 @@ def compile_shaders(recompile: bool = False):
 def render_widget(widget: Widget, state: ModalState):
     '''Render a widget on the screen.'''
     # If display is none, don't render this widget or its children.
-    if widget._style.display == Display.NONE:
+    if widget._style.display is Display.NONE:
         return
 
     # Only render this widget if it's set to visible.
-    if widget._style.visibility != Visibility.HIDDEN:
+    if widget._style.visibility is not Visibility.HIDDEN:
         x = widget._layout.padding.x
         y = widget._layout.padding.y
         width = widget._layout.padding.width
@@ -76,7 +76,7 @@ def render_widget(widget: Widget, state: ModalState):
             (2, 3, 0),
         )
 
-        if (widget._style.display != Display.SCROLL) and (widget._layout.scissor != None):
+        if (widget._style.display is not Display.SCROLL) and (widget._layout.scissor is not None):
             scissor: Area = round(widget._layout.scissor)
 
             bgl.glScissor(scissor.x, state.area.height - scissor.y - scissor.height, scissor.width, scissor.height)
@@ -118,11 +118,11 @@ def render_widget(widget: Widget, state: ModalState):
 
         bgl.glDisable(bgl.GL_BLEND)
 
-        if (widget._style.display != Display.SCROLL) and (widget._layout.scissor != None):
+        if (widget._style.display is not Display.SCROLL) and (widget._layout.scissor is not None):
             bgl.glDisable(bgl.GL_SCISSOR_TEST)
 
     # Render child widgets.
-    if widget._style.display == Display.SCROLL:
+    if widget._style.display is Display.SCROLL:
         for child in widget._children:
             if child._layout.scissor.contains(child._layout.border, True):
                 render_widget(child, state)

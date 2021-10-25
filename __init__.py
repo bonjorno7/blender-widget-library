@@ -163,9 +163,9 @@ class ExampleOperator(Operator):
                     if state.event.type == 'WHEELUPMOUSE':
                         self.styles[0].scroll = max(0, self.styles[0].scroll - 10)
                     else:
-                        if self.styles[0].direction == Direction.HORIZONTAL:
+                        if self.styles[0].direction is Direction.HORIZONTAL:
                             limit = self._layout.content.width - self._layout.inside.width
-                        elif self.styles[0].direction == Direction.VERTICAL:
+                        elif self.styles[0].direction is Direction.VERTICAL:
                             limit = self._layout.content.height - self._layout.inside.height
                         self.styles[0].scroll = min(limit, self.styles[0].scroll + 10)
 
@@ -189,9 +189,9 @@ class ExampleOperator(Operator):
                         display=Display.SCROLL,
                         scroll=0,
                         direction=direction,
-                        width=Size.relative() if direction == Direction.HORIZONTAL else Size.children(),
-                        height=Size.relative() if direction == Direction.VERTICAL else Size.children(),
-                        margin=Sides(20, 20, 5 if direction == Direction.HORIZONTAL else 20),
+                        width=Size.relative() if direction is Direction.HORIZONTAL else Size.children(),
+                        height=Size.relative() if direction is Direction.VERTICAL else Size.children(),
+                        margin=Sides(20, 20, 5 if direction is Direction.HORIZONTAL else 20),
                         padding=Sides(4),
                         background_color=Color(0.35),
                         border_color=Color(0.15),
