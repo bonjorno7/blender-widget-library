@@ -123,7 +123,7 @@ class ExampleOperator(Operator):
                 Style(
                     background_color=Color(0, 0),
                     width=Size.absolute(45),
-                    height=header.styles[0].height,
+                    height=Size.relative(),
                     border_radius=Corners(0, 0, 9, 0),
                     align_x=Align.CENTER,
                     align_y=Align.CENTER,
