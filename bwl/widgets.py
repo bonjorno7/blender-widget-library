@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Set, Tuple, Union
+from typing import Any, List, Set, Tuple, Union
 
 from .content import Texture
 from .input import ModalState
@@ -145,6 +145,23 @@ class Widget:
 
         return False
 
+    def send_signal(self, signal: Any, reverse: bool = False) -> bool:
+        '''Send custom signal to this widget and its children, return whether it was handled.'''
+        if reverse:
+            for child in reversed(self._children):
+                if child.send_signal(signal):
+                    return True
+
+        if not is_abstract(self.on_signal):
+            return self.on_signal(signal)
+
+        if not reverse:
+            for child in self._children:
+                if child.send_signal(signal):
+                    return True
+
+        return False
+
     @abstract
     def on_mouse_move(self, state: ModalState):
         '''Called on mouse move events.'''
@@ -188,4 +205,9 @@ class Widget:
     @abstract
     def on_misc_event(self, state: ModalState):
         '''Called on miscellaneous events.'''
+        ...
+
+    @abstract
+    def on_signal(self, signal: Any) -> bool:
+        '''Receive custom signal, return whether it was handled.'''
         ...
