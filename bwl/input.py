@@ -1,31 +1,7 @@
 from __future__ import annotations
 
-from typing import Union
 
-from bpy.types import Context, Event, Operator
-
-from .layout import Area
-
-
-class ModalState:
-    '''Current operator state.'''
-
-    def __init__(self, operator: Operator, context: Context, event: Union[Event, None] = None):
-        self.operator = operator
-        self.context = context
-        self.event = event
-        self.area = Area(0, 0, context.area.width, context.area.height)
-
-        if event is not None:
-            self.mouse_x = event.mouse_region_x
-            self.mouse_y = context.area.height - event.mouse_region_y
-            self.is_move = self.event.type in _EventTypes.move
-            self.is_mouse = self.event.type in _EventTypes.mouse
-            self.is_scroll = self.event.type in _EventTypes.scroll
-            self.is_keyboard = self.event.type in _EventTypes.keyboard
-
-
-class _EventTypes:
+class EventTypes:
     move = {
         'MOUSEMOVE',
     }

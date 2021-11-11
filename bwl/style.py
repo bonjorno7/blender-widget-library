@@ -3,10 +3,11 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Callable, Iterator, overload
 
+from bpy.types import Context
+
 from .content import Font
 
 if TYPE_CHECKING:
-    from .input import ModalState
     from .widgets import Widget
 
 
@@ -19,7 +20,7 @@ class Criteria:
         active: bool = False,
         select: bool = False,
         focus: bool = False,
-        custom: Callable[[Widget, ModalState], bool] = None,
+        custom: Callable[[Widget, Context], bool] = None,
     ):
         self.hover = hover
         self.active = active
@@ -351,7 +352,7 @@ DEFAULT_STYLE = Style(
 )
 
 
-def compute_style(widget: Widget, state: ModalState):
+def compute_style(widget: Widget, context: Context):
     '''Compute style for the given widget and its children.'''
     widget._style = DEFAULT_STYLE
 
@@ -365,10 +366,10 @@ def compute_style(widget: Widget, state: ModalState):
                 continue
             if style.criteria.focus and not widget._focus:
                 continue
-            if callable(style.criteria.custom) and not style.criteria.custom(widget, state):
+            if callable(style.criteria.custom) and not style.criteria.custom(widget, context):
                 continue
 
         widget._style += style
 
     for child in widget._children:
-        compute_style(child, state)
+        compute_style(child, context)

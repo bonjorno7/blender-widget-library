@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union, overload
 
 import blf
+from bpy.types import Context, Event
 
 from .style import Align, Direction, Display, Size
 
 if TYPE_CHECKING:
-    from .input import ModalState
     from .widgets import Widget
 
 
@@ -64,38 +64,41 @@ class Layout:
         # None means don't use scissor.
         self.scissor: Union[Area, None] = None
 
-    def under_mouse(self, state: ModalState) -> bool:
+    def under_mouse(self, context: Context, event: Event) -> bool:
         '''Check whether the cursor is inside this layout.'''
+        mouse_x = event.mouse_region_x
+        mouse_y = context.area.height - event.mouse_region_y
+
         if self.scissor is not None:
-            if not self.scissor.contains(state.mouse_x, state.mouse_y):
+            if not self.scissor.contains(mouse_x, mouse_y):
                 return False
 
-        if not self.border.contains(state.mouse_x, state.mouse_y):
+        if not self.border.contains(mouse_x, mouse_y):
             return False
 
         return True
 
 
-def compute_layout(widget: Widget, state: ModalState):
+def compute_layout(widget: Widget, context: Context):
     '''Compute layout for the given widget and its children.'''
     # Don't bother calculating layout for widgets with display none.
     if widget._style.display is Display.NONE:
         return
 
     # Calculate size first because it affects position.
-    compute_width(widget, state)
-    compute_height(widget, state)
-    compute_x(widget, state)
-    compute_y(widget, state)
+    compute_width(widget, context)
+    compute_height(widget, context)
+    compute_x(widget, context)
+    compute_y(widget, context)
 
-    compute_scissor(widget, state)
+    compute_scissor(widget, context)
 
-    compute_text_size(widget, state)
-    compute_text_x(widget, state)
-    compute_text_y(widget, state)
+    compute_text_size(widget, context)
+    compute_text_x(widget, context)
+    compute_text_y(widget, context)
 
 
-def compute_width(widget: Widget, state: ModalState, width: float = None) -> float:
+def compute_width(widget: Widget, context: Context, width: float = None) -> float:
     '''Compute the content width of this widget and its children, take width taken in parent, return width taken in parent.'''
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
@@ -113,7 +116,7 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
     # Use the width given to us by our parent.
     elif widget._style.width.type is Size.Type.RELATIVE:
         if width is None:
-            width = state.area.width
+            width = context.area.width
 
         widget._layout.margin.width = width
         widget._layout.border.width = widget._layout.margin.width - widget._style.margin.width
@@ -132,7 +135,7 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
 
     # Calculate width per stretching child.
     if widget._style.direction is Direction.HORIZONTAL:
-        widget._layout.content.width = sum(compute_width(child, state) for child in fixed_children)
+        widget._layout.content.width = sum(compute_width(child, context) for child in fixed_children)
 
         if flex_children:
             flexible_width = widget._layout.inside.width - widget._layout.content.width
@@ -140,14 +143,14 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
 
     # Stretch children to fit our width.
     elif widget._style.direction is Direction.VERTICAL:
-        widget._layout.content.width = max((compute_width(child, state) for child in fixed_children), default=0)
+        widget._layout.content.width = max((compute_width(child, context) for child in fixed_children), default=0)
 
         if flex_children:
             width_per_weight = widget._layout.inside.width
 
     # Stretch children to fit the stretchable width.
     for child in flex_children:
-        compute_width(child, state, child._style.width.value * width_per_weight)
+        compute_width(child, context, child._style.width.value * width_per_weight)
 
     # Fit our width to our children.
     if widget._style.width.type is Size.Type.CHILDREN:
@@ -158,13 +161,13 @@ def compute_width(widget: Widget, state: ModalState, width: float = None) -> flo
 
     # Floating children can take the full width.
     for child in float_children:
-        compute_width(child, state, widget._layout.inside.width)
+        compute_width(child, context, widget._layout.inside.width)
 
     # Return our width, so our parent can use it to calculate its content width.
     return widget._layout.margin.width
 
 
-def compute_height(widget: Widget, state: ModalState, height: float = None) -> float:
+def compute_height(widget: Widget, context: Context, height: float = None) -> float:
     '''Compute the content height of this widget and its children, take height taken in parent, return height taken in parent.'''
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
@@ -182,7 +185,7 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
     # Use the height given to us by our parent.
     elif widget._style.height.type is Size.Type.RELATIVE:
         if height is None:
-            height = state.area.height
+            height = context.area.height
 
         widget._layout.margin.height = height
         widget._layout.border.height = widget._layout.margin.height - widget._style.margin.height
@@ -201,7 +204,7 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
 
     # Calculate height per stretching child.
     if widget._style.direction is Direction.VERTICAL:
-        widget._layout.content.height = sum(compute_height(child, state) for child in fixed_children)
+        widget._layout.content.height = sum(compute_height(child, context) for child in fixed_children)
 
         if flex_children:
             flexible_height = widget._layout.inside.height - widget._layout.content.height
@@ -209,7 +212,7 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
 
     # Stretch children to fit our height.
     elif widget._style.direction is Direction.HORIZONTAL:
-        widget._layout.content.height = max((compute_height(child, state) for child in fixed_children), default=0)
+        widget._layout.content.height = max((compute_height(child, context) for child in fixed_children), default=0)
 
         if flex_children:
             height_per_weight = widget._layout.inside.height
@@ -223,17 +226,17 @@ def compute_height(widget: Widget, state: ModalState, height: float = None) -> f
 
     # Stretch children to fit the stretchable height.
     for child in flex_children:
-        compute_height(child, state, child._style.height.value * height_per_weight)
+        compute_height(child, context, child._style.height.value * height_per_weight)
 
     # Floating children can take the full height.
     for child in float_children:
-        compute_height(child, state, widget._layout.inside.height)
+        compute_height(child, context, widget._layout.inside.height)
 
     # Return our height, so our parent can use it to calculate its content height.
     return widget._layout.margin.height
 
 
-def compute_x(widget: Widget, state: ModalState, x: float = None):
+def compute_x(widget: Widget, context: Context, x: float = None):
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
     flex_children = [child for child in children if child._style.width.type is Size.Type.RELATIVE]
@@ -265,27 +268,27 @@ def compute_x(widget: Widget, state: ModalState, x: float = None):
         # Calculate position for children.
         child_x = widget._layout.content.x - widget._style.scroll
         for child in children:
-            compute_x(child, state, child_x)
+            compute_x(child, context, child_x)
             child_x += child._layout.margin.width
 
     # Calculate content position for vertical layout.
     elif widget._style.direction is Direction.VERTICAL:
         for child in children:
             if widget._style.align_x is Align.START:
-                compute_x(child, state, widget._layout.inside.x)
+                compute_x(child, context, widget._layout.inside.x)
             else:
                 offset = widget._layout.inside.width - child._layout.margin.width
                 if widget._style.align_x is Align.CENTER:
-                    compute_x(child, state, widget._layout.inside.x + offset / 2)
+                    compute_x(child, context, widget._layout.inside.x + offset / 2)
                 elif widget._style.align_x is Align.END:
-                    compute_x(child, state, widget._layout.inside.x + offset)
+                    compute_x(child, context, widget._layout.inside.x + offset)
 
     # Floating children are placed relative to our inside position.
     for child in float_children:
-        compute_x(child, state, widget._layout.inside.x)
+        compute_x(child, context, widget._layout.inside.x)
 
 
-def compute_y(widget: Widget, state: ModalState, y: float = None):
+def compute_y(widget: Widget, context: Context, y: float = None):
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
     flex_children = [child for child in children if child._style.height.type is Size.Type.RELATIVE]
@@ -317,27 +320,27 @@ def compute_y(widget: Widget, state: ModalState, y: float = None):
         # Calculate position for children.
         child_y = widget._layout.content.y - widget._style.scroll
         for child in children:
-            compute_y(child, state, child_y)
+            compute_y(child, context, child_y)
             child_y += child._layout.margin.height
 
     # Calculate content position for horizontal layout.
     elif widget._style.direction is Direction.HORIZONTAL:
         for child in children:
             if widget._style.align_y is Align.START:
-                compute_y(child, state, widget._layout.inside.y)
+                compute_y(child, context, widget._layout.inside.y)
             else:
                 offset = widget._layout.inside.height - child._layout.margin.height
                 if widget._style.align_y is Align.CENTER:
-                    compute_y(child, state, widget._layout.inside.y + offset / 2)
+                    compute_y(child, context, widget._layout.inside.y + offset / 2)
                 elif widget._style.align_y is Align.END:
-                    compute_y(child, state, widget._layout.inside.y + offset)
+                    compute_y(child, context, widget._layout.inside.y + offset)
 
     # Floating children are placed relative to our inside position.
     for child in float_children:
-        compute_x(child, state, widget._layout.inside.y)
+        compute_x(child, context, widget._layout.inside.y)
 
 
-def compute_scissor(widget: Widget, state: ModalState, area: Area = None):
+def compute_scissor(widget: Widget, context: Context, area: Area = None):
     if area is not None:
         widget._layout.scissor = area
     elif widget._style.display is Display.SCROLL:
@@ -347,10 +350,10 @@ def compute_scissor(widget: Widget, state: ModalState, area: Area = None):
 
     for child in widget._children:
         if child._style.display is not Display.NONE:
-            compute_scissor(child, state, widget._layout.scissor)
+            compute_scissor(child, context, widget._layout.scissor)
 
 
-def compute_text_size(widget: Widget, state: ModalState):
+def compute_text_size(widget: Widget, context: Context):
     if widget.text is not None:
         font_id = widget._style.font.id
         font_size = widget._style.font_size
@@ -365,10 +368,10 @@ def compute_text_size(widget: Widget, state: ModalState):
 
     for child in widget._children:
         if child._style.display is not Display.NONE:
-            compute_text_size(child, state)
+            compute_text_size(child, context)
 
 
-def compute_text_x(widget: Widget, state: ModalState):
+def compute_text_x(widget: Widget, context: Context):
     if widget.text is not None:
         if widget._style.align_x is Align.START:
             widget._layout.text.x = widget._layout.inside.x
@@ -381,10 +384,10 @@ def compute_text_x(widget: Widget, state: ModalState):
 
     for child in widget._children:
         if child._style.display is not Display.NONE:
-            compute_text_x(child, state)
+            compute_text_x(child, context)
 
 
-def compute_text_y(widget: Widget, state: ModalState):
+def compute_text_y(widget: Widget, context: Context):
     if widget.text is not None:
         if widget._style.align_y is Align.START:
             widget._layout.text.y = widget._layout.inside.y
@@ -397,4 +400,4 @@ def compute_text_y(widget: Widget, state: ModalState):
 
     for child in widget._children:
         if child._style.display is not Display.NONE:
-            compute_text_y(child, state)
+            compute_text_y(child, context)

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Any, List, Set, Tuple, Union
 
+from bpy.types import Context, Event
+
 from .content import Texture
-from .input import ModalState
+from .input import EventTypes
 from .layout import Layout, compute_layout
 from .render import compile_shaders, render_widget
 from .style import DEFAULT_STYLE, Display, Style, compute_style
@@ -63,151 +65,151 @@ class Widget:
         '''Whether this widget is focused.'''
         return self._focus
 
-    def compute(self, state: ModalState):
+    def compute(self, context: Context):
         '''Compute style and layout of this widget and its children.'''
-        compute_style(self, state)
-        compute_layout(self, state)
+        compute_style(self, context)
+        compute_layout(self, context)
 
-    def render(self, state: ModalState):
+    def render(self, context: Context):
         '''Render this widget and its children.'''
         compile_shaders(recompile=False)
-        render_widget(self, state)
+        render_widget(self, context)
 
-    def handle(self, state: ModalState) -> bool:
+    def handle(self, context: Context, event: Event) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
         if self._style.display is Display.NONE:
             return False
 
         for child in reversed(self._children):
-            if child.handle(state):
+            if child.handle(context, event):
                 return True
 
-        if state.is_move:
-            hover = self._layout.under_mouse(state)
+        if event.type in EventTypes.move:
+            hover = self._layout.under_mouse(context, event)
 
             if not is_abstract(self.on_mouse_move):
-                self.on_mouse_move(state)
+                self.on_mouse_move(context, event)
 
             if not self._hover and hover:
                 self._hover = hover
 
                 if not is_abstract(self.on_mouse_enter):
-                    self.on_mouse_enter(state)
+                    self.on_mouse_enter(context, event)
 
             elif self._hover and not hover:
                 self._hover = hover
 
                 if not is_abstract(self.on_mouse_leave):
-                    self.on_mouse_leave(state)
+                    self.on_mouse_leave(context, event)
 
-        elif state.is_mouse:
-            if state.event.value == 'PRESS':
+        elif event.type in EventTypes.mouse:
+            if event.value == 'PRESS':
                 if self._hover:
-                    self._pressed.add(state.event.type)
+                    self._pressed.add(event.type)
                     self._active = bool(self._pressed)
 
                     if not is_abstract(self.on_mouse_press):
-                        self.on_mouse_press(state)
+                        self.on_mouse_press(context, event)
                         return True
 
-            elif state.event.value == 'RELEASE':
-                if state.event.type in self._pressed:
-                    self._pressed.remove(state.event.type)
+            elif event.value == 'RELEASE':
+                if event.type in self._pressed:
+                    self._pressed.remove(event.type)
                     self._active = bool(self._pressed)
 
                     if self._hover:
                         if not is_abstract(self.on_mouse_release):
-                            self.on_mouse_release(state)
+                            self.on_mouse_release(context, event)
                             return True
 
-        elif state.is_scroll:
+        elif event.type in EventTypes.scroll:
             if not is_abstract(self.on_mouse_scroll):
                 if self._hover:
-                    self.on_mouse_scroll(state)
+                    self.on_mouse_scroll(context, event)
                     return True
 
-        elif state.is_keyboard:
+        elif event.type in EventTypes.keyboard:
             if self._focus:
-                if state.event.value == 'PRESS':
+                if event.value == 'PRESS':
                     if not is_abstract(self.on_key_press):
-                        self.on_key_press(state)
+                        self.on_key_press(context, event)
                         return True
 
-                elif state.event.value == 'RELEASE':
+                elif event.value == 'RELEASE':
                     if not is_abstract(self.on_key_release):
-                        self.on_key_release(state)
+                        self.on_key_release(context, event)
                         return True
 
         else:
             if not is_abstract(self.on_misc_event):
-                self.on_misc_event(state)
+                self.on_misc_event(context, event)
                 return True
 
         return False
 
-    def send_signal(self, signal: Any, reverse: bool = False) -> bool:
+    def send_signal(self, context: Context, signal: Any, reverse: bool = False) -> bool:
         '''Send custom signal to this widget and its children, return whether it was handled.'''
         if reverse:
             for child in reversed(self._children):
-                if child.send_signal(signal):
+                if child.send_signal(context, signal, reverse):
                     return True
 
         if not is_abstract(self.on_signal):
-            return self.on_signal(signal)
+            return self.on_signal(context, signal)
 
         if not reverse:
             for child in self._children:
-                if child.send_signal(signal):
+                if child.send_signal(context, signal, reverse):
                     return True
 
         return False
 
     @abstract
-    def on_mouse_move(self, state: ModalState):
+    def on_mouse_move(self, context: Context, event: Event):
         '''Called on mouse move events.'''
         ...
 
     @abstract
-    def on_mouse_enter(self, state: ModalState):
+    def on_mouse_enter(self, context: Context, event: Event):
         '''Called when the cursor enters this widget's border.'''
         ...
 
     @abstract
-    def on_mouse_leave(self, state: ModalState):
+    def on_mouse_leave(self, context: Context, event: Event):
         '''Called when the cursor leaves this widget's border.'''
         ...
 
     @abstract
-    def on_mouse_scroll(self, state: ModalState):
+    def on_mouse_scroll(self, context: Context, event: Event):
         '''Called on mouse scroll events inside this widget.'''
         ...
 
     @abstract
-    def on_mouse_press(self, state: ModalState):
+    def on_mouse_press(self, context: Context, event: Event):
         '''Called on mouse press events inside this widget.'''
         ...
 
     @abstract
-    def on_mouse_release(self, state: ModalState):
+    def on_mouse_release(self, context: Context, event: Event):
         '''Called on mouse release events inside this widget, if the button was pressed inside this widget.'''
         ...
 
     @abstract
-    def on_key_press(self, state: ModalState):
+    def on_key_press(self, context: Context, event: Event):
         '''Called on key press events, if this widget is focused.'''
         ...
 
     @abstract
-    def on_key_release(self, state: ModalState):
+    def on_key_release(self, context: Context, event: Event):
         '''Called on key release events, if this widget is focused.'''
         ...
 
     @abstract
-    def on_misc_event(self, state: ModalState):
+    def on_misc_event(self, context: Context, event: Event):
         '''Called on miscellaneous events.'''
         ...
 
     @abstract
-    def on_signal(self, signal: Any) -> bool:
+    def on_signal(self, context: Context, signal: Any) -> bool:
         '''Receive custom signal, return whether it was handled.'''
         ...

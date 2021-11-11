@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING
 
 import bgl
 import blf
+from bpy.types import Context
 from gpu.types import GPUBatch, GPUShader
 from gpu_extras.batch import batch_for_shader
 
 from .content import Texture
-from .input import ModalState
 from .layout import Area
 from .style import Color, Display, Visibility
 
@@ -38,7 +38,7 @@ def compile_shaders(recompile: bool = False):
         _Shaders.textured = GPUShader(vertex_source, fragment_source)
 
 
-def render_widget(widget: Widget, state: ModalState):
+def render_widget(widget: Widget, context: Context):
     '''Render a widget on the screen.'''
     # If display is none, don't render this widget or its children.
     if widget._style.display is Display.NONE:
@@ -52,7 +52,7 @@ def render_widget(widget: Widget, state: ModalState):
         height = widget._layout.padding.height
 
         # Offset Y to work with OpenGL.
-        y = state.area.height - y - height
+        y = context.area.height - y - height
 
         color = widget._style.background_color
         border_color = widget._style.border_color
@@ -79,7 +79,7 @@ def render_widget(widget: Widget, state: ModalState):
         if (widget._style.display is not Display.SCROLL) and (widget._layout.scissor is not None):
             scissor: Area = round(widget._layout.scissor)
 
-            bgl.glScissor(scissor.x, state.area.height - scissor.y - scissor.height, scissor.width, scissor.height)
+            bgl.glScissor(scissor.x, context.area.height - scissor.y - scissor.height, scissor.width, scissor.height)
             bgl.glEnable(bgl.GL_SCISSOR_TEST)
 
         bgl.glEnable(bgl.GL_BLEND)
@@ -114,7 +114,7 @@ def render_widget(widget: Widget, state: ModalState):
             )
 
         if widget.text is not None:
-            _render_text(widget, state)
+            _render_text(widget, context)
 
         bgl.glDisable(bgl.GL_BLEND)
 
@@ -125,10 +125,10 @@ def render_widget(widget: Widget, state: ModalState):
     if widget._style.display is Display.SCROLL:
         for child in widget._children:
             if child._layout.scissor.contains(child._layout.border, True):
-                render_widget(child, state)
+                render_widget(child, context)
     else:
         for child in widget._children:
-            render_widget(child, state)
+            render_widget(child, context)
 
 
 def _render_standard(
@@ -199,13 +199,13 @@ def _render_texture(
     texture.gl_free()
 
 
-def _render_text(widget: Widget, state: ModalState):
+def _render_text(widget: Widget, context: Context):
     x = widget._layout.text.x
     y = widget._layout.text.y
     height = widget._layout.text.height
 
     # Offset Y to work with OpenGL.
-    y = state.area.height - y - height
+    y = context.area.height - y - height
 
     # Get the font ID once because it's a getter.
     id = widget._style.font.id

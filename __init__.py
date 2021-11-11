@@ -14,7 +14,6 @@ from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
 from .bwl.content import Font, Texture
-from .bwl.input import ModalState
 from .bwl.style import Align, Color, Corners, Criteria, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utils import hide_hud, show_hud
 from .bwl.widgets import Widget
@@ -26,9 +25,12 @@ class ExampleOperator(Operator):
     bl_description = 'Test the Blender Widget Library'
     bl_options = {'REGISTER'}
 
+    # Store global variables on the class.
+    should_close = False
+
     def invoke(self, context: Context, event: Event) -> set:
         try:
-            self.should_close = False
+            ExampleOperator.should_close = False
 
             # Load resources.
             resources_path = Path(__file__).parent.joinpath('resources')
@@ -45,10 +47,10 @@ class ExampleOperator(Operator):
             # Setup root widget.
             class Root(Widget):
 
-                def on_key_press(self, state: ModalState):
-                    if (state.event.type == 'ESC') and (state.event.value == 'PRESS'):
-                        operator: ExampleOperator = state.operator
-                        operator.should_close = True
+                # FIXME: Because the window eats events, this method is not called if the cursor is above the window.
+                def on_key_press(self, context: Context, event: Event):
+                    if (event.type == 'ESC') and (event.value == 'PRESS'):
+                        ExampleOperator.should_close = True
 
             self.root = Root()
             self.root.styles = [
@@ -64,8 +66,8 @@ class ExampleOperator(Operator):
             # Setup window. Windows 11 themed.
             class Window(Widget):
 
-                def handle(self, state: ModalState) -> bool:
-                    handled = super().handle(state)
+                def handle(self, context: Context, event: Event) -> bool:
+                    handled = super().handle(context, event)
 
                     # Consume all events when the cursor is inside the window.
                     return handled or self._hover
@@ -112,10 +114,9 @@ class ExampleOperator(Operator):
             # Setup exit button.
             class Button(Widget):
 
-                def on_mouse_release(self, state: ModalState):
-                    if state.event.type == 'LEFTMOUSE':
-                        operator: ExampleOperator = state.operator
-                        operator.should_close = True
+                def on_mouse_release(self, context: Context, event: Event):
+                    if event.type == 'LEFTMOUSE':
+                        ExampleOperator.should_close = True
 
             exit_button = Button(parent=header)
             exit_button.styles = [
@@ -158,8 +159,8 @@ class ExampleOperator(Operator):
             # Create scroll box widget type.
             class ScrollBox(Widget):
 
-                def on_mouse_scroll(self, state: ModalState):
-                    if state.event.type == 'WHEELUPMOUSE':
+                def on_mouse_scroll(self, context: Context, event: Event):
+                    if event.type == 'WHEELUPMOUSE':
                         self.styles[0].scroll = max(0, self.styles[0].scroll - 10)
                     else:
                         if self.styles[0].direction is Direction.HORIZONTAL:
@@ -170,10 +171,10 @@ class ExampleOperator(Operator):
 
             class ScrollBoxItem(Widget):
 
-                def on_mouse_release(self, state: ModalState):
+                def on_mouse_release(self, context: Context, event: Event):
                     if self._hover:
-                        if state.event.type == 'LEFTMOUSE':
-                            if state.event.ctrl:
+                        if event.type == 'LEFTMOUSE':
+                            if event.ctrl:
                                 self._select = not self._select
                             else:
                                 for sibling in self._parent._children:
@@ -237,8 +238,7 @@ class ExampleOperator(Operator):
                     element.text = f'Item number {number}'
 
             # Finally compute layout and styles.
-            state = ModalState(self, context, event)
-            self.root.compute(state)
+            self.root.compute(context)
 
             self.setup(context)
             return {'RUNNING_MODAL'}
@@ -254,14 +254,13 @@ class ExampleOperator(Operator):
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            state = ModalState(self, context, event)
-            handled = self.root.handle(state)
+            handled = self.root.handle(context, event)
 
-            if self.should_close:
+            if ExampleOperator.should_close:
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            self.root.compute(state)
+            self.root.compute(context)
             context.area.tag_redraw()
 
             return {'RUNNING_MODAL'} if handled else {'PASS_THROUGH'}
@@ -271,8 +270,7 @@ class ExampleOperator(Operator):
             raise
 
     def draw_callback(self, context: Context):
-        state = ModalState(self, context)
-        self.root.render(state)
+        self.root.render(context)
 
     def setup(self, context: Context) -> bool:
         hide_hud(context, sidebar=True, redo=True, overlays=True)
