@@ -91,8 +91,7 @@ class Widget:
 
         if is_custom(event):
             if not is_abstract(self.on_custom_event):
-                self.on_custom_event(context, event)
-                return True
+                return self.on_custom_event(context, event)
 
         elif is_move(event):
             hover = self._layout.under_mouse(context, event)
@@ -152,14 +151,13 @@ class Widget:
 
         else:
             if not is_abstract(self.on_misc_event):
-                self.on_misc_event(context, event)
-                return True
+                return self.on_misc_event(context, event)
 
         return False
 
     @abstract
-    def on_custom_event(self, context: Context, event: CustomEvent):
-        '''Called on custom events.'''
+    def on_custom_event(self, context: Context, event: CustomEvent) -> bool:
+        '''Handle custom event, return whether it was handled.'''
         ...
 
     @abstract
@@ -203,6 +201,6 @@ class Widget:
         ...
 
     @abstract
-    def on_misc_event(self, context: Context, event: Event):
-        '''Called on miscellaneous events.'''
+    def on_misc_event(self, context: Context, event: Event) -> bool:
+        '''Handle miscellaneous event, return whether it was handled.'''
         ...
