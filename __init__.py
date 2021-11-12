@@ -177,7 +177,7 @@ class ExampleOperator(Operator):
                             if event.ctrl:
                                 self._select = not self._select
                             else:
-                                for sibling in self._parent._children:
+                                for sibling in self.siblings:
                                     sibling._select = False
                                 self._select = True
 
