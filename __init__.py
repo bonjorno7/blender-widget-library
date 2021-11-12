@@ -76,8 +76,8 @@ class ExampleOperator(Operator):
             window.styles = [
                 Style(
                     direction=Direction.VERTICAL,
-                    width=Size.absolute(800),
-                    height=Size.absolute(600),
+                    width=Size.relative(0.5),
+                    height=Size.relative(0.5),
                     background_color=Color(0.15),
                     border_color=Color(0.15),
                     border_radius=Corners(10),

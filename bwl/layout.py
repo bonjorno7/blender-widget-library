@@ -113,6 +113,16 @@ def compute_width(widget: Widget, context: Context, width: float = None) -> floa
         widget._layout.border.width = widget._layout.padding.width + (widget._style.border_thickness * 2)
         widget._layout.margin.width = widget._layout.border.width + widget._style.margin.width
 
+    # Use a factor of our parent width.
+    elif widget._style.width.type is Size.Type.RELATIVE:
+        if width is None:
+            width = context.area.width
+
+        widget._layout.margin.width = widget._style.width.value * width
+        widget._layout.border.width = widget._layout.margin.width - widget._style.margin.width
+        widget._layout.padding.width = widget._layout.border.width - (widget._style.border_thickness * 2)
+        widget._layout.inside.width = widget._layout.padding.width - widget._style.padding.width
+
     # Use the width given to us by our parent.
     elif widget._style.width.type is Size.Type.FLEXIBLE:
         if width is None:
@@ -135,15 +145,19 @@ def compute_width(widget: Widget, context: Context, width: float = None) -> floa
 
     # Calculate width per stretching child.
     if widget._style.direction is Direction.HORIZONTAL:
-        widget._layout.content.width = sum(compute_width(child, context) for child in fixed_children)
+        inside_width = widget._layout.inside.width
+        content_width = sum(compute_width(child, context, inside_width) for child in fixed_children)
+        widget._layout.content.width = content_width
 
         if flex_children:
-            flexible_width = widget._layout.inside.width - widget._layout.content.width
+            flexible_width = inside_width - content_width
             width_per_weight = flexible_width / sum(child._style.width.value for child in flex_children)
 
     # Stretch children to fit our width.
     elif widget._style.direction is Direction.VERTICAL:
-        widget._layout.content.width = max((compute_width(child, context) for child in fixed_children), default=0)
+        inside_width = widget._layout.inside.width
+        content_width = max((compute_width(child, context, inside_width) for child in fixed_children), default=0)
+        widget._layout.content.width = content_width
 
         if flex_children:
             width_per_weight = widget._layout.inside.width
@@ -182,6 +196,16 @@ def compute_height(widget: Widget, context: Context, height: float = None) -> fl
         widget._layout.border.height = widget._layout.padding.height + (widget._style.border_thickness * 2)
         widget._layout.margin.height = widget._layout.border.height + widget._style.margin.height
 
+    # Use a factor of our parent height.
+    elif widget._style.height.type is Size.Type.RELATIVE:
+        if height is None:
+            height = context.area.height
+
+        widget._layout.margin.height = widget._style.height.value * height
+        widget._layout.border.height = widget._layout.margin.height - widget._style.margin.height
+        widget._layout.padding.height = widget._layout.border.height - (widget._style.border_thickness * 2)
+        widget._layout.inside.height = widget._layout.padding.height - widget._style.padding.height
+
     # Use the height given to us by our parent.
     elif widget._style.height.type is Size.Type.FLEXIBLE:
         if height is None:
@@ -204,18 +228,22 @@ def compute_height(widget: Widget, context: Context, height: float = None) -> fl
 
     # Calculate height per stretching child.
     if widget._style.direction is Direction.VERTICAL:
-        widget._layout.content.height = sum(compute_height(child, context) for child in fixed_children)
+        inside_height = widget._layout.inside.height
+        content_height = sum(compute_height(child, context, inside_height) for child in fixed_children)
+        widget._layout.content.height = content_height
 
         if flex_children:
-            flexible_height = widget._layout.inside.height - widget._layout.content.height
+            flexible_height = inside_height - content_height
             height_per_weight = flexible_height / sum(child._style.height.value for child in flex_children)
 
     # Stretch children to fit our height.
     elif widget._style.direction is Direction.HORIZONTAL:
-        widget._layout.content.height = max((compute_height(child, context) for child in fixed_children), default=0)
+        inside_height = widget._layout.inside.height
+        content_height = max((compute_height(child, context, inside_height) for child in fixed_children), default=0)
+        widget._layout.content.height = content_height
 
         if flex_children:
-            height_per_weight = widget._layout.inside.height
+            height_per_weight = inside_height
 
     # Fit our height to our children.
     if widget._style.height.type is Size.Type.CHILDREN:
