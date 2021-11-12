@@ -8,7 +8,7 @@ from bpy.types import Context
 from .content import Font
 
 if TYPE_CHECKING:
-    from .widgets import Widget
+    from .widget import Widget
 
 
 class Criteria:

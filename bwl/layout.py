@@ -8,7 +8,7 @@ from bpy.types import Context, Event
 from .style import Align, Direction, Display, Size
 
 if TYPE_CHECKING:
-    from .widgets import Widget
+    from .widget import Widget
 
 
 class Area:

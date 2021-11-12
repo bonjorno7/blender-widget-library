@@ -14,7 +14,7 @@ from .layout import Area
 from .style import Color, Display, Visibility
 
 if TYPE_CHECKING:
-    from .widgets import Widget
+    from .widget import Widget
 
 
 class _Shaders:

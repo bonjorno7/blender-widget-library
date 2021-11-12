@@ -15,8 +15,8 @@ from bpy.utils import register_class, unregister_class
 
 from .bwl.content import Font, Texture
 from .bwl.style import Align, Color, Corners, Criteria, Direction, Display, Sides, Size, Style, Visibility
-from .bwl.utils import hide_hud, show_hud
-from .bwl.widgets import Widget
+from .bwl.utility import hide_hud, show_hud
+from .bwl.widget import Widget
 
 
 class ExampleOperator(Operator):

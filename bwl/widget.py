@@ -5,11 +5,11 @@ from typing import List, Set, Tuple, Union
 from bpy.types import Context, Event
 
 from .content import Texture
-from .input import CustomEvent, EventTypes
+from .event import CustomEvent, EventTypes
 from .layout import Layout, compute_layout
 from .render import compile_shaders, render_widget
 from .style import DEFAULT_STYLE, Display, Style, compute_style
-from .utils import abstract, is_abstract
+from .utility import abstract, is_abstract
 
 
 class Widget:
