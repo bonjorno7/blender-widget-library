@@ -1,5 +1,16 @@
 from __future__ import annotations
 
+from typing import Any
+
+
+class CustomEvent:
+    '''Custom event for widgets to handle.'''
+
+    def __init__(self, type: str, value: Any = None):
+        '''Value can be anyting.'''
+        self.type = type
+        self.value = value
+
 
 class EventTypes:
     move = {

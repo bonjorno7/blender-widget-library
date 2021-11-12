@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, List, Set, Tuple, Union
+from typing import List, Set, Tuple, Union
 
 from bpy.types import Context, Event
 
 from .content import Texture
-from .input import EventTypes
+from .input import CustomEvent, EventTypes
 from .layout import Layout, compute_layout
 from .render import compile_shaders, render_widget
 from .style import DEFAULT_STYLE, Display, Style, compute_style
@@ -75,7 +75,7 @@ class Widget:
         compile_shaders(recompile=False)
         render_widget(self, context)
 
-    def handle(self, context: Context, event: Event) -> bool:
+    def handle(self, context: Context, event: Union[Event, CustomEvent]) -> bool:
         '''Handle event for this widget and its children, return whether it was handled.'''
         if self._style.display is Display.NONE:
             return False
@@ -84,7 +84,12 @@ class Widget:
             if child.handle(context, event):
                 return True
 
-        if event.type in EventTypes.move:
+        if isinstance(event, CustomEvent):
+            if not is_abstract(self.on_custom_event):
+                self.on_custom_event(context, event)
+                return True
+
+        elif event.type in EventTypes.move:
             hover = self._layout.under_mouse(context, event)
 
             if not is_abstract(self.on_mouse_move):
@@ -147,22 +152,10 @@ class Widget:
 
         return False
 
-    def send_signal(self, context: Context, signal: Any, reverse: bool = False) -> bool:
-        '''Send custom signal to this widget and its children, return whether it was handled.'''
-        if reverse:
-            for child in reversed(self._children):
-                if child.send_signal(context, signal, reverse):
-                    return True
-
-        if not is_abstract(self.on_signal):
-            return self.on_signal(context, signal)
-
-        if not reverse:
-            for child in self._children:
-                if child.send_signal(context, signal, reverse):
-                    return True
-
-        return False
+    @abstract
+    def on_custom_event(self, context: Context, event: CustomEvent):
+        '''Called on custom events.'''
+        ...
 
     @abstract
     def on_mouse_move(self, context: Context, event: Event):
@@ -207,9 +200,4 @@ class Widget:
     @abstract
     def on_misc_event(self, context: Context, event: Event):
         '''Called on miscellaneous events.'''
-        ...
-
-    @abstract
-    def on_signal(self, context: Context, signal: Any) -> bool:
-        '''Receive custom signal, return whether it was handled.'''
         ...
