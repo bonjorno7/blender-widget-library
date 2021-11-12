@@ -56,8 +56,8 @@ class ExampleOperator(Operator):
             self.root.styles = [
                 Style(
                     visibility=Visibility.HIDDEN,
-                    width=Size.relative(),
-                    height=Size.relative(),
+                    width=Size.flexible(),
+                    height=Size.flexible(),
                     align_x=Align.CENTER,
                     align_y=Align.CENTER,
                 ),
@@ -90,7 +90,7 @@ class ExampleOperator(Operator):
             header.styles = [
                 Style(
                     direction=Direction.HORIZONTAL,
-                    width=Size.relative(),
+                    width=Size.flexible(),
                     height=Size.absolute(32),
                     align_x=Align.CENTER,
                     align_y=Align.CENTER,
@@ -109,7 +109,7 @@ class ExampleOperator(Operator):
 
             # Title bar spacer.
             spacer = Widget(parent=header)
-            spacer.styles = [Style(visibility=Visibility.HIDDEN, width=Size.relative())]
+            spacer.styles = [Style(visibility=Visibility.HIDDEN, width=Size.flexible())]
 
             # Setup exit button.
             class Button(Widget):
@@ -123,7 +123,7 @@ class ExampleOperator(Operator):
                 Style(
                     background_color=Color(0, 0),
                     width=Size.absolute(45),
-                    height=Size.relative(),
+                    height=Size.flexible(),
                     border_radius=Corners(0, 0, 9, 0),
                     align_x=Align.CENTER,
                     align_y=Align.CENTER,
@@ -148,8 +148,8 @@ class ExampleOperator(Operator):
             frame.styles = [
                 Style(
                     direction=Direction.VERTICAL,
-                    width=Size.relative(),
-                    height=Size.relative(),
+                    width=Size.flexible(),
+                    height=Size.flexible(),
                     background_color=Color(0.25),
                     padding=Sides(5),
                     border_radius=Corners(0, 9),
@@ -189,8 +189,8 @@ class ExampleOperator(Operator):
                         display=Display.SCROLL,
                         scroll=0,
                         direction=direction,
-                        width=Size.relative() if direction is Direction.HORIZONTAL else Size.children(),
-                        height=Size.relative() if direction is Direction.VERTICAL else Size.children(),
+                        width=Size.flexible() if direction is Direction.HORIZONTAL else Size.children(),
+                        height=Size.flexible() if direction is Direction.VERTICAL else Size.children(),
                         margin=Sides(20, 20, 5 if direction is Direction.HORIZONTAL else 20),
                         padding=Sides(4),
                         background_color=Color(0.35),

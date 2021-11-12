@@ -102,8 +102,8 @@ def compute_width(widget: Widget, context: Context, width: float = None) -> floa
     '''Compute the content width of this widget and its children, take width taken in parent, return width taken in parent.'''
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.width.type is Size.Type.RELATIVE]
-    fixed_children = [child for child in children if child._style.width.type is not Size.Type.RELATIVE]
+    flex_children = [child for child in children if child._style.width.type is Size.Type.FLEXIBLE]
+    fixed_children = [child for child in children if child._style.width.type is not Size.Type.FLEXIBLE]
     float_children = [child for child in widget._children if child._style.display is Display.FLOAT]
 
     # Use the width defined in our own style.
@@ -114,7 +114,7 @@ def compute_width(widget: Widget, context: Context, width: float = None) -> floa
         widget._layout.margin.width = widget._layout.border.width + widget._style.margin.width
 
     # Use the width given to us by our parent.
-    elif widget._style.width.type is Size.Type.RELATIVE:
+    elif widget._style.width.type is Size.Type.FLEXIBLE:
         if width is None:
             width = context.area.width
 
@@ -171,8 +171,8 @@ def compute_height(widget: Widget, context: Context, height: float = None) -> fl
     '''Compute the content height of this widget and its children, take height taken in parent, return height taken in parent.'''
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.height.type is Size.Type.RELATIVE]
-    fixed_children = [child for child in children if child._style.height.type is not Size.Type.RELATIVE]
+    flex_children = [child for child in children if child._style.height.type is Size.Type.FLEXIBLE]
+    fixed_children = [child for child in children if child._style.height.type is not Size.Type.FLEXIBLE]
     float_children = [child for child in widget._children if child._style.display is Display.FLOAT]
 
     # Use the height defined in our own style.
@@ -183,7 +183,7 @@ def compute_height(widget: Widget, context: Context, height: float = None) -> fl
         widget._layout.margin.height = widget._layout.border.height + widget._style.margin.height
 
     # Use the height given to us by our parent.
-    elif widget._style.height.type is Size.Type.RELATIVE:
+    elif widget._style.height.type is Size.Type.FLEXIBLE:
         if height is None:
             height = context.area.height
 
@@ -239,7 +239,7 @@ def compute_height(widget: Widget, context: Context, height: float = None) -> fl
 def compute_x(widget: Widget, context: Context, x: float = None):
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.width.type is Size.Type.RELATIVE]
+    flex_children = [child for child in children if child._style.width.type is Size.Type.FLEXIBLE]
     float_children = [child for child in widget._children if child._style.display is Display.FLOAT]
 
     # Start at the position defined in style.
@@ -291,7 +291,7 @@ def compute_x(widget: Widget, context: Context, x: float = None):
 def compute_y(widget: Widget, context: Context, y: float = None):
     # Get relevant groups of child widgets.
     children = [child for child in widget._children if child._style.display not in (Display.NONE, Display.FLOAT)]
-    flex_children = [child for child in children if child._style.height.type is Size.Type.RELATIVE]
+    flex_children = [child for child in children if child._style.height.type is Size.Type.FLEXIBLE]
     float_children = [child for child in widget._children if child._style.display is Display.FLOAT]
 
     # Start at the position defined in style.

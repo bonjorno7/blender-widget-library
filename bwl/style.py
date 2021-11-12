@@ -62,7 +62,7 @@ class Size:
     class Type(Enum):
         '''How to calculate the size.'''
         ABSOLUTE = auto()
-        RELATIVE = auto()
+        FLEXIBLE = auto()
         CHILDREN = auto()
         TEXTURE = auto()
 
@@ -75,8 +75,8 @@ class Size:
         return cls(cls.Type.ABSOLUTE, pixels)
 
     @classmethod
-    def relative(cls, weight: float = 1):
-        return cls(cls.Type.RELATIVE, weight)
+    def flexible(cls, weight: float = 1):
+        return cls(cls.Type.FLEXIBLE, weight)
 
     @classmethod
     def children(cls):
