@@ -43,7 +43,7 @@ class Widget:
     @property
     def siblings(self) -> Tuple[Widget]:
         '''This widget and its siblings.'''
-        return self.parent.children if (self.parent is not None) else tuple()
+        return self.parent.children if (self.parent is not None) else (self,)
 
     @property
     def children(self) -> Tuple[Widget]:
