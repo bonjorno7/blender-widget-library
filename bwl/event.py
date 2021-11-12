@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Union
+
+from bpy.types import Event
 
 
 class CustomEvent:
@@ -12,7 +14,27 @@ class CustomEvent:
         self.value = value
 
 
-class EventTypes:
+def is_custom(event: Union[Event, CustomEvent]) -> bool:
+    return isinstance(event, CustomEvent)
+
+
+def is_move(event: Union[Event, CustomEvent]) -> bool:
+    return event.type in _EventTypes.move
+
+
+def is_mouse(event: Union[Event, CustomEvent]) -> bool:
+    return event.type in _EventTypes.mouse
+
+
+def is_scroll(event: Union[Event, CustomEvent]) -> bool:
+    return event.type in _EventTypes.scroll
+
+
+def is_keyboard(event: Union[Event, CustomEvent]) -> bool:
+    return event.type in _EventTypes.keyboard
+
+
+class _EventTypes:
     move = {
         'MOUSEMOVE',
     }

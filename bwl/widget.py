@@ -5,7 +5,7 @@ from typing import List, Set, Tuple, Union
 from bpy.types import Context, Event
 
 from .content import Texture
-from .event import CustomEvent, EventTypes
+from .event import CustomEvent, is_custom, is_keyboard, is_mouse, is_move, is_scroll
 from .layout import Layout, compute_layout
 from .render import compile_shaders, render_widget
 from .style import DEFAULT_STYLE, Display, Style, compute_style
@@ -84,12 +84,12 @@ class Widget:
             if child.handle(context, event):
                 return True
 
-        if isinstance(event, CustomEvent):
+        if is_custom(event):
             if not is_abstract(self.on_custom_event):
                 self.on_custom_event(context, event)
                 return True
 
-        elif event.type in EventTypes.move:
+        elif is_move(event):
             hover = self._layout.under_mouse(context, event)
 
             if not is_abstract(self.on_mouse_move):
@@ -107,7 +107,7 @@ class Widget:
                 if not is_abstract(self.on_mouse_leave):
                     self.on_mouse_leave(context, event)
 
-        elif event.type in EventTypes.mouse:
+        elif is_mouse(event):
             if event.value == 'PRESS':
                 if self._hover:
                     self._pressed.add(event.type)
@@ -127,13 +127,13 @@ class Widget:
                             self.on_mouse_release(context, event)
                             return True
 
-        elif event.type in EventTypes.scroll:
+        elif is_scroll(event):
             if not is_abstract(self.on_mouse_scroll):
                 if self._hover:
                     self.on_mouse_scroll(context, event)
                     return True
 
-        elif event.type in EventTypes.keyboard:
+        elif is_keyboard(event):
             if self._focus:
                 if event.value == 'PRESS':
                     if not is_abstract(self.on_key_press):
