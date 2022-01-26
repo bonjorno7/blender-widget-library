@@ -47,14 +47,7 @@ class ExampleOperator(Operator):
             )
 
             # Setup root widget.
-            class Root(Widget):
-
-                # FIXME: Because the window eats events, this method is not called if the cursor is above the window.
-                def on_key_press(self, context: Context, event: Event):
-                    if (event.type == 'ESC') and (event.value == 'PRESS'):
-                        ExampleOperator.should_close = True
-
-            self.root = Root()
+            self.root = Widget()
             self.root.styles = [
                 Style(
                     visibility=Visibility.HIDDEN,
@@ -73,6 +66,10 @@ class ExampleOperator(Operator):
 
                     # Consume all events when the cursor is inside the window.
                     return handled or self._hover
+
+                def on_key_press(self, context: Context, event: Event):
+                    if event.type == 'ESC':
+                        ExampleOperator.should_close = True
 
             window = Window(parent=self.root)
             window.styles = [
@@ -275,7 +272,7 @@ class ExampleOperator(Operator):
         self.root.render(context)
 
     def setup(self, context: Context) -> bool:
-        hide_hud(context, sidebar=True, redo=True, overlays=True)
+        hide_hud(context, sidebar=True, redo=True)
 
         self.draw_handler = SpaceView3D.draw_handler_add(self.draw_callback, (context,), 'WINDOW', 'POST_PIXEL')
         context.area.tag_redraw()

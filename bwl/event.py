@@ -1,36 +1,21 @@
 from __future__ import annotations
 
-from typing import Any, Union
-
 from bpy.types import Event
 
 
-class CustomEvent:
-    '''Custom event for widgets to handle.'''
-
-    def __init__(self, type: str, value: Any = None):
-        '''Value can be anyting.'''
-        self.type = type
-        self.value = value
-
-
-def is_custom(event: Union[Event, CustomEvent]) -> bool:
-    return isinstance(event, CustomEvent)
-
-
-def is_move(event: Union[Event, CustomEvent]) -> bool:
+def is_move(event: Event) -> bool:
     return event.type in _EventTypes.move
 
 
-def is_mouse(event: Union[Event, CustomEvent]) -> bool:
+def is_mouse(event: Event) -> bool:
     return event.type in _EventTypes.mouse
 
 
-def is_scroll(event: Union[Event, CustomEvent]) -> bool:
+def is_scroll(event: Event) -> bool:
     return event.type in _EventTypes.scroll
 
 
-def is_keyboard(event: Union[Event, CustomEvent]) -> bool:
+def is_keyboard(event: Event) -> bool:
     return event.type in _EventTypes.keyboard
 
 

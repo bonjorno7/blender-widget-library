@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Callable, Iterator, overload
+from typing import TYPE_CHECKING, Iterator, overload
 
 from bpy.types import Context
 
@@ -19,14 +19,10 @@ class Criteria:
         hover: bool = False,
         active: bool = False,
         select: bool = False,
-        focus: bool = False,
-        custom: Callable[[Widget, Context], bool] = None,
     ):
         self.hover = hover
         self.active = active
         self.select = select
-        self.focus = focus
-        self.custom = custom
 
 
 class Display(Enum):
@@ -363,15 +359,11 @@ def compute_style(widget: Widget, context: Context):
 
     for style in widget.styles:
         if style.criteria is not None:
-            if style.criteria.hover and not widget._hover:
+            if style.criteria.hover and not widget.hover:
                 continue
-            if style.criteria.active and not widget._active:
+            if style.criteria.active and not widget.active:
                 continue
-            if style.criteria.select and not widget._select:
-                continue
-            if style.criteria.focus and not widget._focus:
-                continue
-            if callable(style.criteria.custom) and not style.criteria.custom(widget, context):
+            if style.criteria.select and not widget.select:
                 continue
 
         widget._style += style
