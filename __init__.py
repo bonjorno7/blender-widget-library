@@ -9,7 +9,9 @@ bl_info = {
 }
 
 from pathlib import Path
+from typing import Tuple, Union
 
+from bpy.app.timers import register as register_timer
 from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
@@ -294,11 +296,15 @@ class ExampleOperator(Operator):
                 pass
 
         # Clean up textures and fonts.
-        for resource in self.resources:
-            try:
-                resource.remove()
-            except:
-                pass
+        def cleanup_resources(resources: Tuple[Texture, Font]):
+            for resource in resources:
+                try:
+                    resource.remove()
+                except:
+                    pass
+
+        # Delay resource cleanup until operator is likely finished.
+        register_timer(lambda: cleanup_resources(self.resources), first_interval=5)
 
 
 classes = (ExampleOperator,)
