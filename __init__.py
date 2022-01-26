@@ -253,6 +253,7 @@ class ExampleOperator(Operator):
         try:
             # This happens on workspace switch. Can't restore HUD unfortunately.
             if context.area is None:
+                self.report({'ERROR'}, 'Closing because there is no context.area')
                 self.cleanup(context)
                 return {'FINISHED'}
 
@@ -313,6 +314,21 @@ classes = (ExampleOperator,)
 def register():
     for cls in classes:
         register_class(cls)
+
+    def call_operator():
+        window_manager = bpy.data.window_managers[0]
+        window = window_manager.windows[0]
+        screen = window.screen
+        area = next(area for area in screen.areas.values() if area.type == 'VIEW_3D')
+        region = [region for region in area.regions.values() if region.type == 'WINDOW']
+        scene = bpy.data.scenes[0]
+        override = {'window': window, 'screen': screen, 'area': area, 'region': region, 'scene': scene}
+        bpy.ops.bwl.example(override, 'INVOKE_DEFAULT')
+        return None
+
+    import bpy
+    if not bpy.app.timers.is_registered(call_operator):
+        bpy.app.timers.register(call_operator, first_interval=5, persistent=True)
 
 
 def unregister():
