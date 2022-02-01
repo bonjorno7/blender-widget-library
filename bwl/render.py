@@ -190,6 +190,8 @@ def _render_texture(
     bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture.bindcode)
     bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
     bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
+    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
 
     batch: GPUBatch = batch_for_shader(_Shaders.textured, 'TRIS', {'position': vertices}, indices=indices)
     batch.draw(_Shaders.textured)
