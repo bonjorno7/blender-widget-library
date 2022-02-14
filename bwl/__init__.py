@@ -1,1 +1,6 @@
+__title__ = 'bwl'
+__description__ = 'Blender Widget Library'
+__url__ = 'https://github.com/bonjorno7/blender-widget-library'
 __version__ = '1.0.4'
+__author__ = 'Jorijn de Graaf, Jonas Almås'
+__license__ = 'GPLv3'
