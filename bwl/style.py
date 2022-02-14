@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Iterator, overload
+from typing import TYPE_CHECKING, Callable, Iterator, overload
 
 from bpy.types import Context
 
@@ -9,20 +9,6 @@ from .content import Font
 
 if TYPE_CHECKING:
     from .widget import Widget
-
-
-class Criteria:
-    '''When to use the style.'''
-
-    def __init__(
-        self,
-        hover: bool = False,
-        active: bool = False,
-        select: bool = False,
-    ):
-        self.hover = hover
-        self.active = active
-        self.select = select
 
 
 class Display(Enum):
@@ -229,7 +215,7 @@ class Style:
 
     def __init__(
         self,
-        criteria: Criteria = None,
+        criteria: Callable[[Widget, Context], bool] = None,
         display: Display = None,
         visibility: Visibility = None,
         direction: Direction = None,
@@ -330,7 +316,7 @@ class Style:
 
 
 DEFAULT_STYLE = Style(
-    criteria=Criteria(),
+    criteria=lambda widget, context: True,
     display=Display.STANDARD,
     visibility=Visibility.VISIBLE,
     direction=Direction.VERTICAL,
@@ -358,15 +344,8 @@ def compute_style(widget: Widget, context: Context):
     widget._style = DEFAULT_STYLE
 
     for style in widget.styles:
-        if style.criteria is not None:
-            if style.criteria.hover and not widget.hover:
-                continue
-            if style.criteria.active and not widget.active:
-                continue
-            if style.criteria.select and not widget.select:
-                continue
-
-        widget._style += style
+        if style.criteria is None or style.criteria(widget, context):
+            widget._style += style
 
     for child in widget._children:
         compute_style(child, context)

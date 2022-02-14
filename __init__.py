@@ -16,7 +16,7 @@ from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
 from .bwl.content import Font, Texture
-from .bwl.style import Align, Color, Corners, Criteria, Direction, Display, Sides, Size, Style, Visibility
+from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utility import hide_hud, show_hud
 from .bwl.widget import Widget
 
@@ -128,11 +128,11 @@ class ExampleOperator(Operator):
                     align_y=Align.CENTER,
                 ),
                 Style(
-                    criteria=Criteria(hover=True),
+                    criteria=lambda widget, context: widget.hover,
                     background_color=Color(0.769, 0.169, 0.110),
                 ),
                 Style(
-                    criteria=Criteria(active=True),
+                    criteria=lambda widget, context: widget.active,
                     background_color=Color(0.698, 0.165, 0.114),
                 ),
             ]
@@ -198,7 +198,7 @@ class ExampleOperator(Operator):
                         border_thickness=1,
                     ),
                     Style(
-                        criteria=Criteria(hover=True),
+                        criteria=lambda widget, context: widget.hover,
                         padding=Sides(3),
                         border_thickness=2,
                     ),
@@ -221,16 +221,16 @@ class ExampleOperator(Operator):
                             font=res_font_roboto,
                         ),
                         Style(
-                            criteria=Criteria(hover=True),
+                            criteria=lambda widget, context: widget.hover,
                             foreground_color=Color(1.0),
                             background_color=Color(0.4),
                         ),
                         Style(
-                            criteria=Criteria(select=True),
+                            criteria=lambda widget, context: widget.select,
                             background_color=Color(0.25, 0.45, 0.65),
                         ),
                         Style(
-                            criteria=Criteria(select=True, hover=True),
+                            criteria=lambda widget, context: widget.hover and widget.select,
                             background_color=Color(0.35, 0.55, 0.75),
                         ),
                     ]
