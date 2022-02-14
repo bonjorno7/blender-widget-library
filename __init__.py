@@ -3,7 +3,7 @@ bl_info = {
     'author': 'bonjorno7, Almaas',
     'description': 'Example addon for the Blender Widget Library',
     'blender': (2, 80, 0),
-    'version': (1, 0, 4),
+    'version': (1, 0, 5),
     'category': '3D View',
     'location': 'View3D',
 }
