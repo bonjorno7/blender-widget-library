@@ -132,7 +132,7 @@ class ExampleOperator(Operator):
                     background_color=Color(0.769, 0.169, 0.110),
                 ),
                 Style(
-                    criteria=lambda widget, context: widget.active,
+                    criteria=lambda widget, context: widget.buttons,
                     background_color=Color(0.698, 0.165, 0.114),
                 ),
             ]

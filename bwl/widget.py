@@ -26,8 +26,8 @@ class Widget:
         self._layout: Layout = Layout()
 
         self._hover: bool = False
-        self._active: Set[str] = set()
-        self._pressed: Set[str] = set()
+        self._buttons: Set[str] = set()
+        self._keys: Set[str] = set()
 
         self.styles: List[Style] = []
         self.texture: Union[Texture, None] = None
@@ -54,14 +54,14 @@ class Widget:
         return self._hover
 
     @property
-    def active(self) -> Set[str]:
+    def buttons(self) -> Set[str]:
         '''The mouse buttons that are pressed on this widget.'''
-        return self._active.copy()
+        return self._buttons.copy()
 
     @property
-    def pressed(self) -> Set[str]:
-        '''The keys that are pressed on this widget.'''
-        return self._pressed.copy()
+    def keys(self) -> Set[str]:
+        '''The keyboard keys that are pressed on this widget.'''
+        return self._keys.copy()
 
     def compute(self, context: Context):
         '''Compute style and layout of this widget and its children.'''
@@ -91,15 +91,15 @@ class Widget:
         elif is_mouse(event):
             if event.value == 'PRESS':
                 if self._hover:
-                    self._active.add(event.type)
+                    self._buttons.add(event.type)
 
                     if not is_abstract(self.on_mouse_press):
                         self.on_mouse_press(context, event)
                         return True
 
             elif event.value == 'RELEASE':
-                if event.type in self._active:
-                    self._active.remove(event.type)
+                if event.type in self._buttons:
+                    self._buttons.remove(event.type)
 
                     if self._hover:
                         if not is_abstract(self.on_mouse_release):
@@ -115,15 +115,15 @@ class Widget:
         elif is_keyboard(event):
             if event.value == 'PRESS':
                 if self._hover:
-                    self._pressed.add(event.type)
+                    self._keys.add(event.type)
 
                     if not is_abstract(self.on_key_press):
                         self.on_key_press(context, event)
                         return True
 
             elif event.value == 'RELEASE':
-                if event.type in self._pressed:
-                    self._pressed.remove(event.type)
+                if event.type in self._keys:
+                    self._keys.remove(event.type)
 
                     if self._hover:
                         if not is_abstract(self.on_key_release):
