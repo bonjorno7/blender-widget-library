@@ -27,6 +27,7 @@ class Widget:
 
         self._hover: bool = False
         self._active: Set[str] = set()
+        self._pressed: Set[str] = set()
 
         self.styles: List[Style] = []
         self.texture: Union[Texture, None] = None
@@ -56,6 +57,11 @@ class Widget:
     def active(self) -> Set[str]:
         '''The mouse buttons that are pressed on this widget.'''
         return self._active.copy()
+
+    @property
+    def pressed(self) -> Set[str]:
+        '''The keys that are pressed on this widget.'''
+        return self._pressed.copy()
 
     def compute(self, context: Context):
         '''Compute style and layout of this widget and its children.'''
@@ -107,16 +113,22 @@ class Widget:
                     return True
 
         elif is_keyboard(event):
-            if self._hover:
-                if event.value == 'PRESS':
+            if event.value == 'PRESS':
+                if self._hover:
+                    self._pressed.add(event.type)
+
                     if not is_abstract(self.on_key_press):
                         self.on_key_press(context, event)
                         return True
 
-                elif event.value == 'RELEASE':
-                    if not is_abstract(self.on_key_release):
-                        self.on_key_release(context, event)
-                        return True
+            elif event.value == 'RELEASE':
+                if event.type in self._pressed:
+                    self._pressed.remove(event.type)
+
+                    if self._hover:
+                        if not is_abstract(self.on_key_release):
+                            self.on_key_release(context, event)
+                            return True
 
         return False
 
@@ -142,10 +154,10 @@ class Widget:
 
     @abstract
     def on_key_press(self, context: Context, event: Event):
-        '''Called on key press events, if this widget is hovered.'''
+        '''Called on key press events inside this widget.'''
         ...
 
     @abstract
     def on_key_release(self, context: Context, event: Event):
-        '''Called on key release events, if this widget is hovered.'''
+        '''Called on key release events inside this widget, if the key was pressed inside this widget.'''
         ...
