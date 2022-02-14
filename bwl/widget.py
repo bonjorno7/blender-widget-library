@@ -26,7 +26,7 @@ class Widget:
         self._layout: Layout = Layout()
 
         self._hover: bool = False
-        self._pressed: Set[str] = set()
+        self._active: Set[str] = set()
 
         self.styles: List[Style] = []
         self.texture: Union[Texture, None] = None
@@ -53,9 +53,9 @@ class Widget:
         return self._hover
 
     @property
-    def active(self) -> bool:
-        '''Whether any mouse buttons are pressed on this widget.'''
-        return bool(self._pressed)
+    def active(self) -> Set[str]:
+        '''The mouse buttons that are pressed on this widget.'''
+        return self._active.copy()
 
     def compute(self, context: Context):
         '''Compute style and layout of this widget and its children.'''
@@ -82,15 +82,15 @@ class Widget:
         elif is_mouse(event):
             if event.value == 'PRESS':
                 if self._hover:
-                    self._pressed.add(event.type)
+                    self._active.add(event.type)
 
                     if not is_abstract(self.on_mouse_press):
                         self.on_mouse_press(context, event)
                         return True
 
             elif event.value == 'RELEASE':
-                if event.type in self._pressed:
-                    self._pressed.remove(event.type)
+                if event.type in self._active:
+                    self._active.remove(event.type)
 
                     if self._hover:
                         if not is_abstract(self.on_mouse_release):
