@@ -24,11 +24,9 @@ class Widget:
 
         self._style: Style = DEFAULT_STYLE
         self._layout: Layout = Layout()
-        self._pressed: Set[str] = set()
 
         self._hover: bool = False
-        self._active: bool = False
-        self._select: bool = False
+        self._pressed: Set[str] = set()
 
         self.styles: List[Style] = []
         self.texture: Union[Texture, None] = None
@@ -40,12 +38,12 @@ class Widget:
         return self._parent
 
     @property
-    def siblings(self) -> Tuple[Widget]:
+    def siblings(self) -> Tuple[Widget, ...]:
         '''This widget and its siblings.'''
         return self.parent.children if (self.parent is not None) else (self,)
 
     @property
-    def children(self) -> Tuple[Widget]:
+    def children(self) -> Tuple[Widget, ...]:
         '''The children of this widget.'''
         return tuple(self._children)
 
@@ -57,12 +55,7 @@ class Widget:
     @property
     def active(self) -> bool:
         '''Whether any mouse buttons are pressed on this widget.'''
-        return self._active
-
-    @property
-    def select(self) -> bool:
-        '''Whether this widget is selected. Implement this yourself.'''
-        return self._select
+        return bool(self._pressed)
 
     def compute(self, context: Context):
         '''Compute style and layout of this widget and its children.'''
@@ -90,7 +83,6 @@ class Widget:
             if event.value == 'PRESS':
                 if self._hover:
                     self._pressed.add(event.type)
-                    self._active = bool(self._pressed)
 
                     if not is_abstract(self.on_mouse_press):
                         self.on_mouse_press(context, event)
@@ -99,7 +91,6 @@ class Widget:
             elif event.value == 'RELEASE':
                 if event.type in self._pressed:
                     self._pressed.remove(event.type)
-                    self._active = bool(self._pressed)
 
                     if self._hover:
                         if not is_abstract(self.on_mouse_release):

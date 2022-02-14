@@ -169,16 +169,17 @@ class ExampleOperator(Operator):
                         self.styles[0].scroll = min(limit, self.styles[0].scroll + 10)
 
             class ScrollBoxItem(Widget):
+                select: bool = False
 
                 def on_mouse_release(self, context: Context, event: Event):
                     if self._hover:
                         if event.type == 'LEFTMOUSE':
                             if event.ctrl:
-                                self._select = not self._select
+                                self.select = not self.select
                             else:
                                 for sibling in self.siblings:
-                                    sibling._select = False
-                                self._select = True
+                                    sibling.select = False
+                                self.select = True
 
             # Setup scroll boxes.
             for direction in Direction:
@@ -293,7 +294,7 @@ class ExampleOperator(Operator):
                 pass
 
         # Clean up textures and fonts.
-        def cleanup_resources(resources: Tuple[Texture, Font]):
+        def cleanup_resources(resources: Tuple[Union[Texture, Font], ...]):
             for resource in resources:
                 try:
                     resource.remove()
