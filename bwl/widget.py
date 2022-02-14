@@ -79,6 +79,9 @@ class Widget:
         if is_move(event):
             self._hover = self._layout.under_mouse(context, event)
 
+            if not is_abstract(self.on_mouse_move):
+                self.on_mouse_move(context, event)
+
         elif is_mouse(event):
             if event.value == 'PRESS':
                 if self._hover:
@@ -118,6 +121,11 @@ class Widget:
         return False
 
     @abstract
+    def on_mouse_move(self, context: Context, event: Event):
+        '''Called on mouse move events.'''
+        ...
+
+    @abstract
     def on_mouse_press(self, context: Context, event: Event):
         '''Called on mouse press events inside this widget.'''
         ...
@@ -134,10 +142,10 @@ class Widget:
 
     @abstract
     def on_key_press(self, context: Context, event: Event):
-        '''Called on key press events, if this widget is focused.'''
+        '''Called on key press events, if this widget is hovered.'''
         ...
 
     @abstract
     def on_key_release(self, context: Context, event: Event):
-        '''Called on key release events, if this widget is focused.'''
+        '''Called on key release events, if this widget is hovered.'''
         ...
