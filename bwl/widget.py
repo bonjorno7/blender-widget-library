@@ -104,7 +104,6 @@ class Widget:
                     if self._hover:
                         if not is_abstract(self.on_mouse_release):
                             self.on_mouse_release(context, event)
-                            return True
 
         elif is_scroll(event):
             if not is_abstract(self.on_mouse_scroll):
@@ -128,7 +127,6 @@ class Widget:
                     if self._hover:
                         if not is_abstract(self.on_key_release):
                             self.on_key_release(context, event)
-                            return True
 
         return False
 
