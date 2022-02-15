@@ -67,6 +67,23 @@ class ExampleOperator(Operator):
                     # Consume all events when the cursor is inside the window.
                     return handled or self._hover
 
+                def get_mouse_pos(self, context: Context, event: Event) -> Tuple[float, float]:
+                    mouse_x = event.mouse_region_x
+                    mouse_y = context.area.height - event.mouse_region_y
+                    return mouse_x, mouse_y
+
+                def on_mouse_press(self, context: Context, event: Event) -> bool:
+                    if event.type == 'MIDDLEMOUSE':
+                        self.mouse_prev_x, self.mouse_press_y = self.get_mouse_pos(context, event)
+                        return True
+
+                def on_mouse_move(self, context: Context, event: Event) -> bool:
+                    if 'MIDDLEMOUSE' in self.buttons:
+                        mouse_x, mouse_y = self.get_mouse_pos(context, event)
+                        self.styles[0].offset_x += mouse_x - self.mouse_prev_x
+                        self.styles[0].offset_y += mouse_y - self.mouse_press_y
+                        self.mouse_prev_x, self.mouse_press_y = mouse_x, mouse_y
+
                 def on_key_press(self, context: Context, event: Event) -> bool:
                     if event.type == 'ESC':
                         ExampleOperator.should_close = True
@@ -82,6 +99,8 @@ class ExampleOperator(Operator):
                     border_color=Color(0.15),
                     border_radius=Corners(10),
                     border_thickness=1,
+                    offset_x=0,
+                    offset_y=0,
                 ),
             ]
 
