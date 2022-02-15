@@ -113,26 +113,28 @@ class Widget:
                     if self._hover:
                         return self.on_key_release(context, event)
 
+        return False
+
     def on_mouse_move(self, context: Context, event: Event) -> bool:
         '''Called on mouse move events.'''
-        ...
+        return False
 
-    def on_mouse_press(self, context: Context, event: Event):
+    def on_mouse_press(self, context: Context, event: Event) -> bool:
         '''Called on mouse press events inside this widget.'''
-        ...
+        return False
 
-    def on_mouse_release(self, context: Context, event: Event):
+    def on_mouse_release(self, context: Context, event: Event) -> bool:
         '''Called on mouse release events inside this widget, if the button was pressed inside this widget.'''
-        ...
+        return False
 
-    def on_mouse_scroll(self, context: Context, event: Event):
+    def on_mouse_scroll(self, context: Context, event: Event) -> bool:
         '''Called on mouse scroll events inside this widget.'''
-        ...
+        return False
 
-    def on_key_press(self, context: Context, event: Event):
+    def on_key_press(self, context: Context, event: Event) -> bool:
         '''Called on key press events inside this widget.'''
-        ...
+        return False
 
-    def on_key_release(self, context: Context, event: Event):
+    def on_key_release(self, context: Context, event: Event) -> bool:
         '''Called on key release events inside this widget, if the key was pressed inside this widget.'''
-        ...
+        return False
