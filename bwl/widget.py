@@ -9,7 +9,6 @@ from .event import is_keyboard, is_mouse, is_move, is_scroll
 from .layout import Layout, compute_layout
 from .render import compile_shaders, render_widget
 from .style import DEFAULT_STYLE, Display, Style, compute_style
-from .utility import abstract, is_abstract
 
 
 class Widget:
@@ -84,78 +83,56 @@ class Widget:
 
         if is_move(event):
             self._hover = self._layout.under_mouse(context, event)
-
-            if not is_abstract(self.on_mouse_move):
-                self.on_mouse_move(context, event)
+            return self.on_mouse_move(context, event)
 
         elif is_mouse(event):
             if event.value == 'PRESS':
                 if self._hover:
                     self._buttons.add(event.type)
-
-                    if not is_abstract(self.on_mouse_press):
-                        self.on_mouse_press(context, event)
-                        return True
+                    return self.on_mouse_press(context, event)
 
             elif event.value == 'RELEASE':
                 if event.type in self._buttons:
                     self._buttons.remove(event.type)
-
                     if self._hover:
-                        if not is_abstract(self.on_mouse_release):
-                            self.on_mouse_release(context, event)
+                        return self.on_mouse_release(context, event)
 
         elif is_scroll(event):
-            if not is_abstract(self.on_mouse_scroll):
-                if self._hover:
-                    self.on_mouse_scroll(context, event)
-                    return True
+            if self._hover:
+                return self.on_mouse_scroll(context, event)
 
         elif is_keyboard(event):
             if event.value == 'PRESS':
                 if self._hover:
                     self._keys.add(event.type)
-
-                    if not is_abstract(self.on_key_press):
-                        self.on_key_press(context, event)
-                        return True
+                    return self.on_key_press(context, event)
 
             elif event.value == 'RELEASE':
                 if event.type in self._keys:
                     self._keys.remove(event.type)
-
                     if self._hover:
-                        if not is_abstract(self.on_key_release):
-                            self.on_key_release(context, event)
+                        return self.on_key_release(context, event)
 
-        return False
-
-    @abstract
-    def on_mouse_move(self, context: Context, event: Event):
+    def on_mouse_move(self, context: Context, event: Event) -> bool:
         '''Called on mouse move events.'''
         ...
 
-    @abstract
     def on_mouse_press(self, context: Context, event: Event):
         '''Called on mouse press events inside this widget.'''
         ...
 
-    @abstract
     def on_mouse_release(self, context: Context, event: Event):
         '''Called on mouse release events inside this widget, if the button was pressed inside this widget.'''
         ...
 
-    @abstract
     def on_mouse_scroll(self, context: Context, event: Event):
         '''Called on mouse scroll events inside this widget.'''
         ...
 
-    @abstract
     def on_key_press(self, context: Context, event: Event):
         '''Called on key press events inside this widget.'''
         ...
 
-    @abstract
     def on_key_release(self, context: Context, event: Event):
         '''Called on key release events inside this widget, if the key was pressed inside this widget.'''
         ...

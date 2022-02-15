@@ -67,9 +67,10 @@ class ExampleOperator(Operator):
                     # Consume all events when the cursor is inside the window.
                     return handled or self._hover
 
-                def on_key_press(self, context: Context, event: Event):
+                def on_key_press(self, context: Context, event: Event) -> bool:
                     if event.type == 'ESC':
                         ExampleOperator.should_close = True
+                        return True
 
             window = Window(parent=self.root)
             window.styles = [
@@ -113,7 +114,7 @@ class ExampleOperator(Operator):
             # Setup exit button.
             class Button(Widget):
 
-                def on_mouse_release(self, context: Context, event: Event):
+                def on_mouse_release(self, context: Context, event: Event) -> bool:
                     if event.type == 'LEFTMOUSE':
                         ExampleOperator.should_close = True
 
@@ -159,27 +160,28 @@ class ExampleOperator(Operator):
             class ScrollBox(Widget):
                 moving: bool = False
 
-                def get_limit(self) -> int:
+                def get_limit(self) -> float:
                     if self._style.direction is Direction.HORIZONTAL:
                         return self._layout.content.width - self._layout.inside.width
                     elif self._style.direction is Direction.VERTICAL:
                         return self._layout.content.height - self._layout.inside.height
 
-                def get_mouse_pos(self, context: Context, event: Event) -> int:
+                def get_mouse_pos(self, context: Context, event: Event) -> float:
                     if self._style.direction is Direction.HORIZONTAL:
                         return event.mouse_region_x
                     elif self._style.direction is Direction.VERTICAL:
                         return context.area.height - event.mouse_region_y
 
-                def on_mouse_press(self, context: Context, event: Event):
+                def on_mouse_press(self, context: Context, event: Event) -> bool:
                     if event.type == 'LEFTMOUSE':
                         self.mouse_prev = self.get_mouse_pos(context, event)
+                        return True
 
-                def on_mouse_release(self, context: Context, event: Event):
+                def on_mouse_release(self, context: Context, event: Event) -> bool:
                     if event.type == 'LEFTMOUSE':
                         self.moving = False
 
-                def on_mouse_move(self, context: Context, event: Event):
+                def on_mouse_move(self, context: Context, event: Event) -> bool:
                     if 'LEFTMOUSE' in self.buttons:
                         mouse = self.get_mouse_pos(context, event)
                         delta = mouse - self.mouse_prev
@@ -192,15 +194,16 @@ class ExampleOperator(Operator):
                             self.moving = True
                             self.mouse_prev = mouse
 
-                def on_mouse_scroll(self, context: Context, event: Event):
+                def on_mouse_scroll(self, context: Context, event: Event) -> bool:
                     wheel = 10 if event.type == 'WHEELUPMOUSE' else -10
                     self.styles[0].scroll = max(0, min(self.get_limit(), self.styles[0].scroll - wheel))
+                    return True
 
             # Create scroll box item widget type.
             class ScrollBoxItem(Widget):
                 select: bool = False
 
-                def on_mouse_release(self, context: Context, event: Event):
+                def on_mouse_release(self, context: Context, event: Event) -> bool:
                     if not self.parent.moving:
                         if event.type == 'LEFTMOUSE':
                             if event.ctrl:
