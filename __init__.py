@@ -158,18 +158,40 @@ class ExampleOperator(Operator):
             # Create scroll box widget type.
             class ScrollBox(Widget):
 
-                def on_mouse_scroll(self, context: Context, event: Event):
-                    if event.type == 'WHEELUPMOUSE':
-                        self.styles[0].scroll = max(0, self.styles[0].scroll - 10)
-                    else:
-                        if self.styles[0].direction is Direction.HORIZONTAL:
-                            limit = self._layout.content.width - self._layout.inside.width
-                        elif self.styles[0].direction is Direction.VERTICAL:
-                            limit = self._layout.content.height - self._layout.inside.height
-                        self.styles[0].scroll = min(limit, self.styles[0].scroll + 10)
+                def get_limit(self) -> int:
+                    if self._style.direction is Direction.HORIZONTAL:
+                        return self._layout.content.width - self._layout.inside.width
+                    elif self._style.direction is Direction.VERTICAL:
+                        return self._layout.content.height - self._layout.inside.height
 
+                def get_mouse_pos(self, context: Context, event: Event) -> int:
+                    if self._style.direction is Direction.HORIZONTAL:
+                        return event.mouse_region_x
+                    elif self._style.direction is Direction.VERTICAL:
+                        return context.area.height - event.mouse_region_y
+
+                def on_mouse_press(self, context: Context, event: Event):
+                    if event.type == 'LEFTMOUSE':
+                        self.mouse_prev = self.get_mouse_pos(context, event)
+
+                def on_mouse_move(self, context: Context, event: Event):
+                    if 'LEFTMOUSE' in self.buttons:
+                        mouse = self.get_mouse_pos(context, event)
+                        scroll = self.styles[0].scroll - (mouse - self.mouse_prev)
+                        self.styles[0].scroll = max(0, min(self.get_limit(), scroll))
+                        self.mouse_prev = mouse
+
+                def on_mouse_scroll(self, context: Context, event: Event):
+                    wheel = 10 if event.type == 'WHEELUPMOUSE' else -10
+                    scroll = self.styles[0].scroll - wheel
+                    self.styles[0].scroll = max(0, min(self.get_limit(), scroll))
+
+            # Create scroll box item widget type.
             class ScrollBoxItem(Widget):
                 select: bool = False
+
+                def on_mouse_press(self, context: Context, event: Event):
+                    pass  # Consume mouse press events to prevent the scroll box from taking them.
 
                 def on_mouse_release(self, context: Context, event: Event):
                     if self._hover:
