@@ -353,7 +353,7 @@ class ExampleOperator(Operator):
                     pass
 
         # Delay resource cleanup until operator is likely finished.
-        register_timer(lambda: cleanup_resources(self.resources), first_interval=5)
+        register_timer(lambda: cleanup_resources(self.resources))
 
 
 classes = (ExampleOperator,)
