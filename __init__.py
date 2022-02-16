@@ -61,11 +61,9 @@ class ExampleOperator(Operator):
             # Setup window. Windows 11 themed.
             class Window(Widget):
 
-                def handle(self, context: Context, event: Event) -> bool:
-                    handled = super().handle(context, event)
-
+                def on_event(self, context: Context, event: Event) -> bool:
                     # Consume all events when the cursor is inside the window.
-                    return handled or self._hover
+                    return super().on_event(context, event) or self._hover
 
                 def get_mouse_pos(self, context: Context, event: Event) -> Tuple[float, float]:
                     mouse_x = event.mouse_region_x

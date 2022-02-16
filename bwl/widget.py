@@ -81,6 +81,10 @@ class Widget:
             if child.handle(context, event):
                 return True
 
+        return self.on_event(context, event)
+
+    def on_event(self, context: Context, event: Event) -> bool:
+        '''Called on all events, delegates to more specific methods.'''
         if is_move(event):
             self._hover = self._layout.under_mouse(context, event)
             return self.on_mouse_move(context, event)
