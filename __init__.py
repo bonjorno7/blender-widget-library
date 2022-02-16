@@ -194,22 +194,12 @@ class ExampleOperator(Operator):
                         self.mouse_prev = self.get_mouse_pos(context, event)
                         return True
 
-                def on_mouse_release(self, context: Context, event: Event) -> bool:
-                    if event.type == 'LEFTMOUSE':
-                        self.moving = False
-
-                def on_mouse_move(self, context: Context, event: Event) -> bool:
-                    if 'LEFTMOUSE' in self.buttons:
+                def on_mouse_drag(self, context: Context, event: Event) -> bool:
+                    if 'LEFTMOUSE' in self._buttons and self._buttons['LEFTMOUSE'][2]:
                         mouse = self.get_mouse_pos(context, event)
                         delta = mouse - self.mouse_prev
-
-                        if self.moving:
-                            self.styles[0].scroll = max(0, min(self.get_limit(), self.styles[0].scroll - delta))
-                            self.mouse_prev = mouse
-
-                        elif abs(delta) > 10:
-                            self.moving = True
-                            self.mouse_prev = mouse
+                        self.styles[0].scroll = max(0, min(self.get_limit(), self.styles[0].scroll - delta))
+                        self.mouse_prev = mouse
 
                 def on_mouse_scroll(self, context: Context, event: Event) -> bool:
                     wheel = 10 if event.type == 'WHEELUPMOUSE' else -10
@@ -220,15 +210,14 @@ class ExampleOperator(Operator):
             class ScrollBoxItem(Widget):
                 select: bool = False
 
-                def on_mouse_release(self, context: Context, event: Event) -> bool:
-                    if not self.parent.moving:
-                        if event.type == 'LEFTMOUSE':
-                            if event.ctrl:
-                                self.select = not self.select
-                            else:
-                                for sibling in self.siblings:
-                                    sibling.select = False
-                                self.select = True
+                def on_mouse_click(self, context: Context, event: Event) -> bool:
+                    if event.type == 'LEFTMOUSE':
+                        if event.ctrl:
+                            self.select = not self.select
+                        else:
+                            for sibling in self.siblings:
+                                sibling.select = False
+                            self.select = True
 
             # Setup scroll boxes.
             for direction in Direction:

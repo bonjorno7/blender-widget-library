@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 from bpy.types import Context, Event
 
@@ -25,7 +25,7 @@ class Widget:
         self._layout: Layout = Layout()
 
         self._hover: bool = False
-        self._buttons: Set[str] = set()
+        self._buttons: Dict[str, Tuple[int, int, bool]] = {}
         self._keys: Set[str] = set()
 
         self.styles: List[Style] = []
@@ -55,7 +55,7 @@ class Widget:
     @property
     def buttons(self) -> Set[str]:
         '''The mouse buttons that are pressed on this widget.'''
-        return self._buttons.copy()
+        return set(self._buttons.keys())
 
     @property
     def keys(self) -> Set[str]:
@@ -87,18 +87,27 @@ class Widget:
         '''Called on all events, delegates to more specific methods.'''
         if is_move(event):
             self._hover = self._layout.under_mouse(context, event)
+            for button, info in self._buttons.items():
+                if not info[2] and abs(event.mouse_x - info[0]) > 10 or abs(event.mouse_y - info[1]) > 10:
+                    self._buttons[button] = event.mouse_x, event.mouse_y, True
+            if any(info[2] for info in self._buttons.values()):
+                if self.on_mouse_drag(context, event):
+                    return True
             return self.on_mouse_move(context, event)
 
         elif is_mouse(event):
             if event.value == 'PRESS':
                 if self._hover:
-                    self._buttons.add(event.type)
+                    self._buttons[event.type] = (event.mouse_x, event.mouse_y, False)
                     return self.on_mouse_press(context, event)
 
             elif event.value == 'RELEASE':
                 if event.type in self._buttons:
-                    self._buttons.remove(event.type)
+                    info = self._buttons.pop(event.type)
                     if self._hover:
+                        if not info[2]:
+                            if self.on_mouse_click(context, event):
+                                return True
                         return self.on_mouse_release(context, event)
 
         elif is_scroll(event):
@@ -119,12 +128,20 @@ class Widget:
 
         return False
 
+    def on_mouse_drag(self, context: Context, event: Event) -> bool:
+        '''Called on mouse drag events, takes precedence over on_mouse_move.'''
+        return False
+
     def on_mouse_move(self, context: Context, event: Event) -> bool:
         '''Called on mouse move events.'''
         return False
 
     def on_mouse_press(self, context: Context, event: Event) -> bool:
         '''Called on mouse press events inside this widget.'''
+        return False
+
+    def on_mouse_click(self, context: Context, event: Event) -> bool:
+        '''Called on mouse click events inside this widget, takes precedence over on_mouse_release.'''
         return False
 
     def on_mouse_release(self, context: Context, event: Event) -> bool:
