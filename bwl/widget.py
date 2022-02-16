@@ -101,6 +101,15 @@ class Widget:
                     if self._hover:
                         return self.on_mouse_release(context, event)
 
+            elif event.value == 'BWL_DRAG':
+                if event.type in self._buttons:
+                    return self.on_mouse_drag(context, event)
+
+            elif event.value == 'BWL_CLICK':
+                if event.type in self._buttons:
+                    if self._hover:
+                        return self.on_mouse_click(context, event)
+
         elif is_scroll(event):
             if self._hover:
                 return self.on_mouse_scroll(context, event)
@@ -129,6 +138,14 @@ class Widget:
 
     def on_mouse_release(self, context: Context, event: Event) -> bool:
         '''Called on mouse release events inside this widget, if the button was pressed inside this widget.'''
+        return False
+
+    def on_mouse_drag(self, context: Context, event: Event) -> bool:
+        '''Called on mouse drag events, if the button was pressed inside this widget.'''
+        return False
+
+    def on_mouse_click(self, context: Context, event: Event) -> bool:
+        '''Called on mouse click events, if the button was pressed inside this widget.'''
         return False
 
     def on_mouse_scroll(self, context: Context, event: Event) -> bool:

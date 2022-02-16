@@ -16,9 +16,38 @@ from bpy.types import Context, Event, Operator, SpaceView3D, WindowManager
 from bpy.utils import register_class, unregister_class
 
 from .bwl.content import Font, Texture
+from .bwl.event import is_mouse, is_move
 from .bwl.style import Align, Color, Corners, Direction, Display, Sides, Size, Style, Visibility
 from .bwl.utility import hide_hud, show_hud
 from .bwl.widget import Widget
+
+
+class DragEvent:
+
+    def __init__(self, event: Event, type: str, operator: Operator):
+        self.type = type
+        self.value = 'BWL_DRAG'
+
+        self.mouse_region_x = event.mouse_region_x
+        self.mouse_region_y = event.mouse_region_y
+
+        self.mouse_prev_x = operator.mouse_prev_x
+        self.mouse_prev_y = operator.mouse_prev_y
+
+
+class ClickEvent:
+
+    def __init__(self, event: Event):
+        self.type = event.type
+        self.value = 'BWL_CLICK'
+
+        self.mouse_region_x = event.mouse_region_x
+        self.mouse_region_y = event.mouse_region_y
+
+        self.alt = event.alt
+        self.ctrl = event.ctrl
+        self.shift = event.shift
+        self.oskey = event.oskey
 
 
 class ExampleOperator(Operator):
@@ -65,22 +94,11 @@ class ExampleOperator(Operator):
                     # Consume all events when the cursor is inside the window.
                     return super().on_event(context, event) or self._hover
 
-                def get_mouse_pos(self, context: Context, event: Event) -> Tuple[float, float]:
-                    mouse_x = event.mouse_region_x
-                    mouse_y = context.area.height - event.mouse_region_y
-                    return mouse_x, mouse_y
-
-                def on_mouse_press(self, context: Context, event: Event) -> bool:
+                def on_mouse_drag(self, context: Context, event: Event) -> bool:
                     if event.type == 'MIDDLEMOUSE':
-                        self.mouse_prev_x, self.mouse_press_y = self.get_mouse_pos(context, event)
+                        self.styles[0].offset_x += event.mouse_region_x - event.mouse_prev_x
+                        self.styles[0].offset_y -= event.mouse_region_y - event.mouse_prev_y
                         return True
-
-                def on_mouse_move(self, context: Context, event: Event) -> bool:
-                    if 'MIDDLEMOUSE' in self.buttons:
-                        mouse_x, mouse_y = self.get_mouse_pos(context, event)
-                        self.styles[0].offset_x += mouse_x - self.mouse_prev_x
-                        self.styles[0].offset_y += mouse_y - self.mouse_press_y
-                        self.mouse_prev_x, self.mouse_press_y = mouse_x, mouse_y
 
                 def on_key_press(self, context: Context, event: Event) -> bool:
                     if event.type == 'ESC':
@@ -189,27 +207,17 @@ class ExampleOperator(Operator):
                     elif self._style.direction is Direction.VERTICAL:
                         return context.area.height - event.mouse_region_y
 
-                def on_mouse_press(self, context: Context, event: Event) -> bool:
+                def get_mouse_prev(self, context: Context, event: Event) -> float:
+                    if self._style.direction is Direction.HORIZONTAL:
+                        return event.mouse_prev_x
+                    elif self._style.direction is Direction.VERTICAL:
+                        return context.area.height - event.mouse_prev_y
+
+                def on_mouse_drag(self, context: Context, event: Event) -> bool:
                     if event.type == 'LEFTMOUSE':
-                        self.mouse_prev = self.get_mouse_pos(context, event)
+                        delta = self.get_mouse_pos(context, event) - self.get_mouse_prev(context, event)
+                        self.styles[0].scroll = max(0, min(self.get_limit(), self.styles[0].scroll - delta))
                         return True
-
-                def on_mouse_release(self, context: Context, event: Event) -> bool:
-                    if event.type == 'LEFTMOUSE':
-                        self.moving = False
-
-                def on_mouse_move(self, context: Context, event: Event) -> bool:
-                    if 'LEFTMOUSE' in self.buttons:
-                        mouse = self.get_mouse_pos(context, event)
-                        delta = mouse - self.mouse_prev
-
-                        if self.moving:
-                            self.styles[0].scroll = max(0, min(self.get_limit(), self.styles[0].scroll - delta))
-                            self.mouse_prev = mouse
-
-                        elif abs(delta) > 10:
-                            self.moving = True
-                            self.mouse_prev = mouse
 
                 def on_mouse_scroll(self, context: Context, event: Event) -> bool:
                     wheel = 10 if event.type == 'WHEELUPMOUSE' else -10
@@ -220,15 +228,15 @@ class ExampleOperator(Operator):
             class ScrollBoxItem(Widget):
                 select: bool = False
 
-                def on_mouse_release(self, context: Context, event: Event) -> bool:
-                    if not self.parent.moving:
-                        if event.type == 'LEFTMOUSE':
-                            if event.ctrl:
-                                self.select = not self.select
-                            else:
-                                for sibling in self.siblings:
-                                    sibling.select = False
-                                self.select = True
+                def on_mouse_click(self, context: Context, event: Event) -> bool:
+                    if event.type == 'LEFTMOUSE':
+                        if event.ctrl:
+                            self.select = not self.select
+                        else:
+                            for sibling in self.siblings:
+                                sibling.select = False
+                            self.select = True
+                        return True
 
             # Setup scroll boxes.
             for direction in Direction:
@@ -289,6 +297,12 @@ class ExampleOperator(Operator):
             # Finally compute layout and styles.
             self.root.compute(context)
 
+            self.mouse_prev_x = event.mouse_region_x
+            self.mouse_prev_y = event.mouse_region_y
+
+            self.pressed = dict()
+            self.dragging = set()
+
             self.setup(context)
             return {'RUNNING_MODAL'}
 
@@ -303,7 +317,38 @@ class ExampleOperator(Operator):
                 self.cleanup(context)
                 return {'FINISHED'}
 
-            handled = self.root.handle(context, event)
+            handled = False
+
+            if is_move(event):
+                for type, mouse in self.pressed.items():
+                    if type not in self.dragging:
+                        distance_x = abs(event.mouse_region_x - mouse[0])
+                        distance_y = abs(event.mouse_region_y - mouse[1])
+
+                        if distance_x > 10 or distance_y > 10:
+                            self.dragging.add(type)
+
+                    if type in self.dragging:
+                        handled = self.root.handle(context, DragEvent(event, type, self)) or handled
+
+            elif is_mouse(event):
+                if event.value == 'PRESS':
+                    self.pressed[event.type] = event.mouse_region_x, event.mouse_region_y
+
+                elif event.value == 'RELEASE':
+                    if event.type in self.pressed:
+                        del self.pressed[event.type]
+
+                        if event.type in self.dragging:
+                            self.dragging.remove(event.type)
+                        else:
+                            handled = self.root.handle(context, ClickEvent(event)) or handled
+
+            handled = self.root.handle(context, event) or handled
+
+            if is_move(event):
+                self.mouse_prev_x = event.mouse_region_x
+                self.mouse_prev_y = event.mouse_region_y
 
             if ExampleOperator.should_close:
                 self.cleanup(context)
